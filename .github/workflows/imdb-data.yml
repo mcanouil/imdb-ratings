@@ -1,0 +1,21 @@
+name: Update IMDb data
+
+on:
+  schedule:
+    - cron: '0 0 1 */1 *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Update IMDb title.basics.tsv.gz
+      run: |
+        FILE=title.basics.tsv.gz
+        curl --output-dir data --silent -O https://datasets.imdbws.com/$FILE
+        git config --local user.name "$GITHUB_ACTOR"
+        git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+        git add data/$FILE
+        git commit -am "New $FILE" || echo "No changes to commit"
+        git push || echo "No changes to commit"
