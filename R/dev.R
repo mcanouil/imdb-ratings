@@ -1,6 +1,5 @@
 library(data.table)
 library(ggplot2)
-library(gganimate)
 
 font <- "Alegreya Sans"
 # sysfonts::font_add_google(font, font, regular.wt = 300)
@@ -11,14 +10,16 @@ ggplot2::theme_set(theme_mc(base_size = 11, base_family = font))
 ggplot2::theme_update(
   plot.title.position = "plot",
   plot.caption.position = "plot",
-  plot.title = ggtext::element_markdown(),
-  plot.subtitle = ggtext::element_markdown(face = "italic"),
-  plot.caption = ggtext::element_markdown(face = "italic"),
-  axis.title.x = ggtext::element_markdown(),
-  axis.text.x = ggtext::element_markdown(),
-  axis.text.x.top = ggtext::element_markdown(),
-  axis.title.y = ggtext::element_markdown(),
-  axis.text.y = ggtext::element_markdown()
+  plot.title = ggplot2::element_text(),
+  plot.subtitle = ggplot2::element_text(face = "italic"),
+  plot.caption = ggplot2::element_text(face = "italic"),
+  axis.title.x = ggplot2::element_text(),
+  axis.text.x = ggplot2::element_text(),
+  axis.text.x.top = ggplot2::element_text(),
+  axis.title.y = ggplot2::element_text(),
+  axis.text.y = ggplot2::element_text(),
+  panel.grid = ggplot2::element_blank(),
+  panel.border = ggplot2::element_blank()
 )
 
 options(
@@ -39,6 +40,7 @@ dt <- merge(
   all.y = TRUE
 )
 
+## Boxplot Ratings
 ggplot(
   data = dt[
     j = strsplit(Genres, ", "),
@@ -79,21 +81,51 @@ ggplot(
   geom_boxplot() +
   scale_x_continuous(limits = c(0, 10), breaks = 0:10, expand = c(0, 0))
 
-p <- ggplot(data = dt[between(Year, 2012, 2022)]) +
-  aes(x = `Runtime (mins)`, y = `IMDb Rating`) +
-  geom_density2d_filled(alpha = 0.5) +
-  # geom_point(size = 0.25) +
-  # geom_smooth(method = "lm", colour = "white", linetype = 2) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0, 10), breaks = 0:10, expand = c(0, 0)) +
-  theme(
-    legend.position = "none",
-    panel.grid = element_blank(),
-    panel.border = element_blank(),
-    axis.ticks = element_blank()
-  ) +
-  transition_time(Year)
+## Word Cloud
+library(ggwordcloud)
+update_geom_defaults(ggwordcloud:::GeomTextWordcloud, list(colour = "#FAFAFA"))
+ggplot(
+  data = dt[
+    j = strsplit(Genres, ", "),
+    by = setdiff(names(dt), "Genres")
+  ][
+    !is.na(V1)
+  ][
+    j = V2 := .N,
+    by = "V1"
+  ][j = unique(.SD), .SDcols = c("V1", "V2")]
+) +
+  aes(label = V1, size = V2) +
+  geom_text_wordcloud()
 
-animate(p, renderer = gifski_renderer(file = "media/animation.gif", width = 1600, height = 1200))
+ggplot(
+  data = dt[
+    i = theatre %in% "LILLE",
+    j = .N,
+    by = "room"
+  ][]
+) +
+  aes(label = room, size = N, colour = N) +
+  geom_text_wordcloud() +
+  scale_size_area(max_size = 10)
 
-tar_read(all_years_streak_plot)
+## Animate
+library(gganimate)
+# p <- ggplot(data = dt[between(Year, 2012, 2022)]) +
+#   aes(x = `Runtime (mins)`, y = `IMDb Rating`) +
+#   geom_density2d_filled(alpha = 0.5) +
+#   # geom_point(size = 0.25) +
+#   # geom_smooth(method = "lm", colour = "white", linetype = 2) +
+#   scale_x_continuous(expand = c(0, 0)) +
+#   scale_y_continuous(limits = c(0, 10), breaks = 0:10, expand = c(0, 0)) +
+#   theme(
+#     legend.position = "none",
+#     panel.grid = element_blank(),
+#     panel.border = element_blank(),
+#     axis.ticks = element_blank()
+#   ) +
+#   transition_time(Year)
+
+# animate(p, renderer = gifski_renderer(file = "media/animation.gif", width = 1600, height = 1200))
+
+# tar_read(all_years_streak_plot)
