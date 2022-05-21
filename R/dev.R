@@ -111,21 +111,54 @@ ggplot(
 
 ## Animate
 library(gganimate)
-# p <- ggplot(data = dt[between(Year, 2012, 2022)]) +
-#   aes(x = `Runtime (mins)`, y = `IMDb Rating`) +
-#   geom_density2d_filled(alpha = 0.5) +
-#   # geom_point(size = 0.25) +
-#   # geom_smooth(method = "lm", colour = "white", linetype = 2) +
-#   scale_x_continuous(expand = c(0, 0)) +
-#   scale_y_continuous(limits = c(0, 10), breaks = 0:10, expand = c(0, 0)) +
-#   theme(
-#     legend.position = "none",
-#     panel.grid = element_blank(),
-#     panel.border = element_blank(),
-#     axis.ticks = element_blank()
-#   ) +
-#   transition_time(Year)
+library(rayshader)
+p <- ggplot(data = dt[between(Year, 2012, 2022)]) +
+  aes(x = `Runtime (mins)`, y = `IMDb Rating`) +
+  stat_density_2d(
+    mapping = aes(fill = stat(nlevel)), 
+    geom = "polygon", 
+      = 200,
+      bins = 50,
+      contour = TRUE
+  ) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 10), breaks = 0:10, expand = c(0, 0)) +
+  theme(
+    legend.position = "none",
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks = element_blank()
+  )
+plot_gg(p, width = 5, height = 5, raytrace = FALSE, preview = TRUE)
 
-# animate(p, renderer = gifski_renderer(file = "media/animation.gif", width = 1600, height = 1200))
 
-# tar_read(all_years_streak_plot)
+ibrary(gganimate)
+p <- ggplot(data = dt[between(Year, 2012, 2022)]) +
+  aes(x = `Runtime (mins)`, y = `IMDb Rating`) +
+  stat_density_2d(
+    mapping = aes(fill = after_stat(density)),
+    geom = "raster",
+    # alpha = 0.5,
+    contour = FALSE,
+    n = 500
+  ) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 10), breaks = 0:10, expand = c(0, 0)) +
+  scale_fill_gradient(
+    low = "#333333",
+    high = "#fafafa",
+    na.value = "#333333",
+    limits = c(0, NA)
+  ) +
+  theme(
+    legend.position = "none",
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks = element_blank()
+  )
+
+animate(
+  plot = p + transition_time(Year),
+  renderer = gifski_renderer(file = "media/animation.gif", width = 1600, height = 1200),
+  device = "ragg_png"
+)
