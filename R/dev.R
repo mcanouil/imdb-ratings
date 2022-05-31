@@ -116,10 +116,9 @@ p <- ggplot(data = dt[between(Year, 2012, 2022)]) +
   aes(x = `Runtime (mins)`, y = `IMDb Rating`) +
   stat_density_2d(
     mapping = aes(fill = stat(nlevel)), 
-    geom = "polygon", 
-      = 200,
-      bins = 50,
-      contour = TRUE
+    geom = "polygon",
+    bins = 50,
+    contour = TRUE
   ) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(limits = c(0, 10), breaks = 0:10, expand = c(0, 0)) +
@@ -162,3 +161,21 @@ animate(
   renderer = gifski_renderer(file = "media/animation.gif", width = 1600, height = 1200),
   device = "ragg_png"
 )
+
+
+## 3D
+library(rayshader)
+library(lubridate)
+p <- tar_read(all_years_streak_plot) +
+  facet_grid(rows = vars(year))
+plot_gg(
+  ggobj = p,
+  width = 8,
+  height = 12,
+  raytrace = FALSE,
+  preview = FALSE,
+  # zoom = 0.55,
+  phi = 30,
+  invert = TRUE
+)
+render_snapshot()
