@@ -70,8 +70,7 @@ options(
 )
 ```
 
-```{targets workflow}
-#| tar_globals: true
+```{targets workflow, tar_globals = TRUE}
 tar_option_set(
   packages = c(
     "here", "data.table", "lubridate", "showtext", "ggplot2",
