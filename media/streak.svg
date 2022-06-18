@@ -30,7 +30,6 @@
 </defs>
 <g clip-path='url(#cpMjguNzd8NTcwLjUyfDE3LjczfDEwNi44MA==)'>
 <rect x='28.77' y='17.73' width='541.75' height='89.07' style='stroke-width: 1.07; stroke: none; fill: #333333;' />
-<rect x='31.31' y='57.18' width='8.13' height='10.18' style='stroke-width: 0.21; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='31.31' y='69.90' width='8.13' height='10.18' style='stroke-width: 0.21; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='31.31' y='82.63' width='8.13' height='10.18' style='stroke-width: 0.21; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='31.31' y='95.35' width='8.13' height='10.18' style='stroke-width: 0.21; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
@@ -212,7 +211,7 @@
 <rect x='559.85' y='44.45' width='8.13' height='10.18' style='stroke-width: 0.21; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='559.85' y='57.18' width='8.13' height='10.18' style='stroke-width: 0.21; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='559.85' y='69.90' width='8.13' height='10.18' style='stroke-width: 0.21; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
-<rect x='31.31' y='57.18' width='8.13' height='10.18' style='stroke-width: 0.32; stroke: #FAFAFA; stroke-opacity: 0.40;' />
+<rect x='559.85' y='82.63' width='8.13' height='10.18' style='stroke-width: 0.21; stroke: none; stroke-linecap: square; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='31.31' y='69.90' width='8.13' height='10.18' style='stroke-width: 0.32; stroke: #FAFAFA; stroke-opacity: 0.40;' />
 <rect x='31.31' y='82.63' width='8.13' height='10.18' style='stroke-width: 0.32; stroke: #FAFAFA; stroke-opacity: 0.40;' />
 <rect x='31.31' y='95.35' width='8.13' height='10.18' style='stroke-width: 0.32; stroke: #FAFAFA; stroke-opacity: 0.40; fill: #3B528B; fill-opacity: 0.30;' />
@@ -578,6 +577,7 @@
 <rect x='559.85' y='44.45' width='8.13' height='10.18' style='stroke-width: 0.32; stroke: #FAFAFA; stroke-opacity: 0.40; fill: #3B528B; fill-opacity: 0.30;' />
 <rect x='559.85' y='57.18' width='8.13' height='10.18' style='stroke-width: 0.32; stroke: #FAFAFA; stroke-opacity: 0.40;' />
 <rect x='559.85' y='69.90' width='8.13' height='10.18' style='stroke-width: 0.32; stroke: #FAFAFA; stroke-opacity: 0.40;' />
+<rect x='559.85' y='82.63' width='8.13' height='10.18' style='stroke-width: 0.32; stroke: #FAFAFA; stroke-opacity: 0.40;' />
 <path d='M 36.30 97.71 L 36.22 100.59 L 36.29 102.66 L 34.94 102.66 L 35.00 100.73 L 35.00 99.08 L 33.88 99.38 L 33.78 99.31 L 33.78 98.24 L 36.11 97.57 L 36.30 97.71 Z' style='fill-rule: nonzero; fill: #FAFAFA; stroke-width: 0.75; stroke: none;' />
 <path d='M 46.46 21.37 L 46.38 24.24 L 46.45 26.32 L 45.11 26.32 L 45.17 24.38 L 45.17 22.73 L 44.04 23.03 L 43.94 22.96 L 43.94 21.89 L 46.27 21.23 L 46.46 21.37 Z' style='fill-rule: nonzero; fill: #FAFAFA; stroke-width: 0.75; stroke: none;' />
 <path d='M 46.46 34.09 L 46.38 36.97 L 46.45 39.04 L 45.11 39.04 L 45.17 37.11 L 45.17 35.46 L 44.04 35.75 L 43.94 35.68 L 43.94 34.62 L 46.27 33.95 L 46.46 34.09 Z' style='fill-rule: nonzero; fill: #FAFAFA; stroke-width: 0.75; stroke: none;' />
