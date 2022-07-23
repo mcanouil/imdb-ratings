@@ -111,11 +111,17 @@ jobs:
           delete-branch: true
           title: "Re-build README.Rmd"
       - name: Auto approve
-        if: steps.cpr.outputs.pull-request-operation == 'created'
+        if: ${{ false }} && steps.cpr.outputs.pull-request-operation == 'created'
         uses: juliangruber/approve-pull-request-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
+      - name: Merge Pull Request
+        uses: juliangruber/merge-pull-request-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ steps.cpr.outputs.pull-request-number }}
+          method: squash
 
       - name: Identify files that the targets pipeline produced
         run: git ls-files -mo > .targets-files
