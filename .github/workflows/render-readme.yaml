@@ -121,7 +121,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
-          method: squash
+          method: merge
 
       - name: Identify files that the targets pipeline produced
         run: git ls-files -mo > .targets-files
