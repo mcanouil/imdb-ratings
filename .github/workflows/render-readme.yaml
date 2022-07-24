@@ -110,12 +110,8 @@ jobs:
           branch: auto-render-readme
           delete-branch: true
           title: "Re-build README.Rmd"
-      - name: Auto approve
-        if: ${{ false }} && steps.cpr.outputs.pull-request-operation == 'created'
-        uses: juliangruber/approve-pull-request-action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ steps.cpr.outputs.pull-request-number }}
+          committer: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
       - name: Merge Pull Request
         if: ${{ steps.cpr.outputs.pull-request-number != '' }}
         uses: juliangruber/merge-pull-request-action@v1
