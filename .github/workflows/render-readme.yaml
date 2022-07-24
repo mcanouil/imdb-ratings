@@ -117,6 +117,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
       - name: Merge Pull Request
+        if: ${{ steps.cpr.outputs.pull-request-number != '' }}
         uses: juliangruber/merge-pull-request-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
