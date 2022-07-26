@@ -346,15 +346,15 @@ list(
         width = 0.8,
         height = 0.8
       ) +
-      geom_tile(
-        mapping = aes(fill = count),
-        alpha = 0.3,
-        colour = "#FAFAFA66",
-        size = 0.15,
-        width = 0.8,
-        height = 0.8,
-        linejoin = "round"
-      ) +
+      # geom_tile(
+      #   mapping = aes(fill = count),
+      #   alpha = 0.3,
+      #   colour = "#FAFAFA66",
+      #   size = 0.15,
+      #   width = 0.8,
+      #   height = 0.8,
+      #   linejoin = "round"
+      # ) +
       geom_tile(
         data = ~ .x[
           between(date, ymd("2020-03-16"), ymd("2020-06-21")) | 
@@ -467,15 +467,15 @@ list(
         width = 0.8,
         height = 0.8
       ) +
-      geom_tile(
-        mapping = aes(fill = count),
-        alpha = 0.3,
-        colour = "#FAFAFA66",
-        size = 0.15,
-        width = 0.8,
-        height = 0.8,
-        linejoin = "round"
-      ) +
+      # geom_tile(
+      #   mapping = aes(fill = count),
+      #   alpha = 0.3,
+      #   colour = "#FAFAFA66",
+      #   size = 0.15,
+      #   width = 0.8,
+      #   height = 0.8,
+      #   linejoin = "round"
+      # ) +
       geom_richtext(
         data = ~ .x[count != 0],
         colour = "#FAFAFA",
