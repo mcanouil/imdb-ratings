@@ -340,8 +340,17 @@ list(
       geom_tile(
         data = ~ .x[month_num %% 2 == 0],
         show.legend = FALSE,
-        colour = NA, # "white",
+        colour = "#FAFAFA66",
         fill = "white",
+        alpha = 0.05,
+        width = 0.8,
+        height = 0.8
+      ) +
+      geom_tile(
+        data = ~ .x[month_num %% 2 == 1],
+        show.legend = FALSE,
+        colour = "#FAFAFA66",
+        fill = NA,
         alpha = 0.05,
         width = 0.8,
         height = 0.8
@@ -461,8 +470,17 @@ list(
       geom_tile(
         data = ~ .x[month_num %% 2 == 0],
         show.legend = FALSE,
-        colour = NA, # "white",
+        colour = "#FAFAFA66",
         fill = "white",
+        alpha = 0.05,
+        width = 0.8,
+        height = 0.8
+      ) +
+      geom_tile(
+        data = ~ .x[month_num %% 2 == 1],
+        show.legend = FALSE,
+        colour = "#FAFAFA66",
+        fill = NA,
         alpha = 0.05,
         width = 0.8,
         height = 0.8
