@@ -664,6 +664,7 @@ tar_read(count_plot)
 ```
 
 ```{r ratings}
+#| eval: false
 #| fig.width: 8
 #| fig.height: 6
 #| fig.cap: "Ratings (as an histogram) of movies seen."
