@@ -70,7 +70,7 @@ options(
 )
 ```
 
-```{targets workflow}
+```{targets}
 tar_option_set(
   packages = c(
     "here", "data.table", "lubridate", "showtext", "ggplot2",
@@ -96,7 +96,7 @@ get_metascore <- function(x) {
       if (is.numeric(result) && !is.na(result)) {
         result
       } else {
-        NA
+        NA_real_
       }
     }
   )
@@ -647,7 +647,8 @@ list(
 tar_make()
 ```
 
-```{r streak}
+```{r}
+#| label: "streak"
 #| fig.width: 8
 #| fig.height: 1.75
 #| fig.cap: "Movies seen in a movie theatre year streak"
@@ -655,7 +656,8 @@ tar_make()
 tar_read(streak_plot)
 ```
 
-```{r counts}
+```{r}
+#| label: "counts"
 #| fig.width: 8
 #| fig.height: 6.5
 #| fig.cap: "Counts of movies seen in a movie theatre per month and year."
@@ -663,7 +665,8 @@ tar_read(streak_plot)
 tar_read(count_plot)
 ```
 
-```{r ratings}
+```{r}
+#| label: "ratings"
 #| eval: false
 #| fig.width: 8
 #| fig.height: 6
@@ -687,7 +690,8 @@ tar_read(count_plot)
 tar_read(ratings_all_plot)
 ```
 
-```{r streak-years}
+```{r}
+#| label: "streak-years"
 #| fig.width: 8
 #| fig.height: 12
 #| fig.cap: "Movies seen in a movie theatre year streak."
@@ -696,7 +700,8 @@ tar_read(all_years_streak_plot) +
   facet_grid(rows = vars(year))
 ```
 
-```{r streak-years-animated}
+```{r}
+#| label: "streak-years-animated"
 #| eval: FALSE
 #| fig.width: 8
 #| fig.height: 1.75
