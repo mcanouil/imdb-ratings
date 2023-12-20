@@ -70,7 +70,7 @@ jobs:
         shell: bash
         run: |
           gh pr create \
-            --title "${{ env.COMMIT }}" \
+            --fill-first \
             --base "main" \
             --head "${{ env.BRANCH }}" \
             --repo ${{ github.repository }} \
