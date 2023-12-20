@@ -75,3 +75,12 @@ jobs:
             --head "${{ env.BRANCH }}" \
             --repo ${{ github.repository }} \
             --reviewer "${{ github.actor }}"
+
+      - name: Merge Pull Request
+        shell: bash
+        run: |
+          gh pr merge \
+            --auto \
+            --squash \
+            --delete-branch \
+            --repo ${{ github.repository }}
