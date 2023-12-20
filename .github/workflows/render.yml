@@ -82,5 +82,4 @@ jobs:
           gh pr merge \
             --auto \
             --squash \
-            --delete-branch \
-            --repo ${{ github.repository }}
+            --delete-branch
