@@ -33,7 +33,7 @@ theme_mc <- function(
     rect = ggplot2::element_rect(
       fill = bc[1],
       colour = bc[3],
-      size = base_rect_size,
+      linewidth = base_rect_size,
       linetype = 1
     ),
     text = ggplot2::element_text(
