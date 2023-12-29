@@ -9,4 +9,4 @@
 
 ![Counts of movies seen in a movie theatre per month and year.](media/counts.svg)
 
-<!-- ![Streak of movies seen in a movie theatre per week and years.](media/streak-years.svg) -->
+![Streak of movies seen in a movie theatre per week and years.](media/streak-years.svg)
