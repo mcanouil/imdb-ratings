@@ -208,7 +208,6 @@ theatres_complete_data <- theatres_raw_data[
   by = "year"
 ]
 
-###
 all_years_streak_data <- theatres_complete_data[
   j = list(
     count = sum(!is.na(theatre)),
@@ -234,7 +233,7 @@ all_years_streak_data <- theatres_complete_data[
   j = unique(.SD)
 ]
 
-week_month_breaks <- all_years_streak_data[
+all_week_month_breaks <- all_years_streak_data[
   i = wday == "Monday" & year > 2013,
   j = list(week = week, n = .N),
   by = c("month_num", "month")
@@ -249,12 +248,7 @@ week_month_breaks <- all_years_streak_data[
   order(month_num, week)
 ]
 
-all_years_streak_plot <- ggplot(data = all_years_streak_data) +
-  aes(
-    x = week,
-    y = factor(wday, levels = rev(levels(wday))),
-    label = count
-  ) +
+streak_geoms <- list(
   geom_tile(
     data = ~ .x[month_num %% 2 == 0],
     show.legend = FALSE,
@@ -263,7 +257,7 @@ all_years_streak_plot <- ggplot(data = all_years_streak_data) +
     alpha = 0.05,
     width = 0.8,
     height = 0.8
-  ) +
+  ),
   geom_tile(
     data = ~ .x[month_num %% 2 == 1],
     show.legend = FALSE,
@@ -272,24 +266,15 @@ all_years_streak_plot <- ggplot(data = all_years_streak_data) +
     alpha = 0.05,
     width = 0.8,
     height = 0.8
-  ) +
-  # geom_tile(
-  #   mapping = aes(fill = count),
-  #   alpha = 0.3,
-  #   colour = "#FAFAFA66",
-  #   linewidth = 0.15,
-  #   width = 0.8,
-  #   height = 0.8,
-  #   linejoin = "round"
-  # ) +
+  ),
   geom_tile(
     data = ~ .x[
-      between(date, ymd("2020-03-16"), ymd("2020-06-21")) | 
+      between(date, ymd("2020-03-16"), ymd("2020-06-21")) |
       between(date, ymd("2020-11-02"), ymd("2021-05-18"))
     ],
     fill = "#21908CFF",
     alpha = 0.3
-  ) +
+  ),
   geom_richtext(
     data = ~ .x[count != 0],
     colour = "#FAFAFA",
@@ -299,23 +284,18 @@ all_years_streak_plot <- ggplot(data = all_years_streak_data) +
     size = 3.5,
     fill = NA,
     label.colour = NA
-  ) +
-  scale_x_discrete(
-    expand = expansion(add = 0.25),
-    breaks = week_month_breaks[["week"]],
-    labels = week_month_breaks[["month"]]
-  ) +
+  ),
   scale_y_discrete(
     expand = expansion(add = 0.5),
     labels = function(x) sub("([[:alpha:]]{3}).*", "\\1.", x)
-  ) +
-  scale_colour_viridis_c() +
+  ),
+  scale_colour_viridis_c(),
   scale_fill_viridis_c(
     begin = 0.25,
     end = 1,
     limits = c(1, NA),
     na.value = NA
-  ) +
+  ),
   theme(
     panel.grid = element_blank(),
     panel.border = element_blank(),
@@ -323,14 +303,26 @@ all_years_streak_plot <- ggplot(data = all_years_streak_data) +
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     axis.ticks = element_blank(),
-    plot.caption = element_markdown(face = "italic", size = rel(0.90)),
-    strip.background = element_rect(colour = NA),
-    strip.text = element_text(size = rel(1.2), face = "bold")
+    plot.caption = element_markdown(face = "italic", size = rel(0.90))
+  )
+)
+
+all_years_streak_plot <- ggplot(data = all_years_streak_data) +
+  aes(
+    x = week,
+    y = factor(wday, levels = rev(levels(wday))),
+    label = count
+  ) +
+  streak_geoms +
+  scale_x_discrete(
+    expand = expansion(add = 0.25),
+    breaks = all_week_month_breaks[["week"]],
+    labels = all_week_month_breaks[["month"]]
   ) +
   labs(
     title = sprintf(
       "Streak of Movies Seen in a Theatre (%s)",
-      format(sum(all_years_streak_data$count), big.mark = ',')
+      format(sum(all_years_streak_data[["count"]]), big.mark = ",")
     ),
     caption = fig_caption,
     colour = "Count",
@@ -381,68 +373,12 @@ week_month_breaks <- streak_data[
 
 streak_plot <- ggplot(data = streak_data) +
   aes(x = x, y = y, label = count) +
-  geom_tile(
-    data = ~ .x[month_num %% 2 == 0],
-    show.legend = FALSE,
-    colour = "#FAFAFA66",
-    fill = "white",
-    alpha = 0.05,
-    width = 0.8,
-    height = 0.8
-  ) +
-  geom_tile(
-    data = ~ .x[month_num %% 2 == 1],
-    show.legend = FALSE,
-    colour = "#FAFAFA66",
-    fill = NA,
-    alpha = 0.05,
-    width = 0.8,
-    height = 0.8
-  ) +
-  # geom_tile(
-  #   mapping = aes(fill = count),
-  #   alpha = 0.3,
-  #   colour = "#FAFAFA66",
-  #   linewidth = 0.15,
-  #   width = 0.8,
-  #   height = 0.8,
-  #   linejoin = "round"
-  # ) +
-  geom_richtext(
-    data = ~ .x[count != 0],
-    colour = "#FAFAFA",
-    na.rm = TRUE,
-    family = font,
-    fontface = "bold",
-    size = 3.5,
-    fill = NA,
-    label.colour = NA
-  ) +
+  streak_geoms +
   scale_x_continuous(
     expand = expansion(add = 0.25),
     breaks = week_month_breaks[["week"]],
     labels = week_month_breaks[["month"]],
     position = "top"
-  ) +
-  scale_y_discrete(
-    expand = expansion(add = 0.5),
-    labels = function(x) sub("([[:alpha:]]{3}).*", "\\1.", x)
-  ) +
-  scale_colour_viridis_c() +
-  scale_fill_viridis_c(
-    begin = 0.25,
-    end = 1,
-    limits = c(1, NA),
-    na.value = NA
-  ) +
-  theme(
-    panel.grid = element_blank(),
-    panel.border = element_blank(),
-    legend.position = "none",
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    axis.ticks = element_blank(),
-    plot.caption = element_markdown(face = "italic", size = rel(0.90))
   ) +
   labs(
     caption = sprintf(
