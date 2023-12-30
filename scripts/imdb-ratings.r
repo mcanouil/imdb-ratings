@@ -332,6 +332,11 @@ all_years_streak_plot <- ggplot(data = all_years_streak_data) +
   ) +
   facet_grid(rows = vars(year))
 
+# Streak of movies seen in a movie theatre per week and years.
+svglite(filename = "media/streak-years.svg", width = 8, height = 12)
+print(all_years_streak_plot)
+invisible(dev.off())
+
 streak_data <- theatres_raw_data[
   j = date := as.IDate(date_time)
 ][
@@ -386,6 +391,11 @@ streak_plot <- ggplot(data = streak_data) +
       format(sum(streak_data[["count"]]), nsmall = 0, big.mark = ",")
     )
   )
+
+# Streak of movies seen in a movie theatre per week and days for the last year.
+svglite(filename = "media/streak.svg", width = 8, height = 1.75)
+print(streak_plot)
+invisible(dev.off())
 
 count_data <- theatres_raw_data[
   j = .N,
@@ -474,27 +484,7 @@ count_plot <- ggplot(data = count_data) +
     )
   )
 
-
-# Streak of movies seen in a movie theatre per week and days for the last year.
-svglite(filename = "media/streak.svg", width = 8, height = 1.75)
-print(streak_plot)
-invisible(dev.off())
-# agg_png(filename = "media/streak.png", width = 8, height = 1.75, units = "in")
-# print(streak_plot)
-# invisible(dev.off())
-
 # Counts of movies seen in a movie theatre per month and year.
 svglite(filename = "media/counts.svg", width = 8, height = 6.5)
 print(count_plot)
 invisible(dev.off())
-# agg_png(filename = "media/counts.png", width = 8, height = 6.5, units = "in")
-# print(count_plot)
-# invisible(dev.off())
-
-# Streak of movies seen in a movie theatre per week and years.
-svglite(filename = "media/streak-years.svg", width = 8, height = 12)
-print(all_years_streak_plot)
-invisible(dev.off())
-# agg_png(filename = "media/streak-years.png", width = 8, height = 12, units = "in", res = 150, scaling = 1.5)
-# print(all_years_streak_plot)
-# invisible(dev.off())
