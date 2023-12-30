@@ -233,6 +233,8 @@ all_years_streak_data <- theatres_complete_data[
   j = week := factor(sprintf("%02d", week), ordered = TRUE)
 ][
   j = unique(.SD)
+][
+  j = week := as.numeric(week)
 ]
 
 all_week_month_breaks <- all_years_streak_data[
@@ -248,6 +250,8 @@ all_week_month_breaks <- all_years_streak_data[
   .SDcols = c("month_num", "month", "week", "n")
 ][
   order(month_num, week)
+][
+  j = week := as.numeric(week)
 ]
 
 streak_geoms <- list(
@@ -316,7 +320,7 @@ all_years_streak_plot <- ggplot(data = all_years_streak_data) +
     label = count
   ) +
   streak_geoms +
-  scale_x_discrete(
+  scale_x_continuous(
     expand = expansion(add = 0.25),
     breaks = all_week_month_breaks[["week"]],
     labels = all_week_month_breaks[["month"]]
