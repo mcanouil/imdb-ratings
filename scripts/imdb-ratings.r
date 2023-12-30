@@ -8,6 +8,8 @@ library(showtext)
 # library(ragg)
 library(svglite)
 
+Sys.setlocale("LC_TIME", "en_US.UTF-8")
+
 fig_caption <- NULL # "&copy; Micka&euml;l '<i style='color:#21908CFF;'>Coeos</i>' Canouil"
 
 font <- "Alegreya Sans"
@@ -363,7 +365,7 @@ streak_data <- theatres_raw_data[
 ][
   i = order(date),
   j = `:=`(
-    "x" = fifelse(test = x_week %in% NA_integer_, 0, x_week),
+    "x" = fifelse(test = is.na(x_week), 0, x_week),
     "y" = factor(wday, levels = rev(levels(wday)))
   )
 ]
