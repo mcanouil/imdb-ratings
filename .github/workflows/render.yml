@@ -50,6 +50,7 @@ jobs:
             any::lubridate
             any::showtext
             any::svglite
+            any::jsonlite
       
       - name: Render figures
         shell: bash
