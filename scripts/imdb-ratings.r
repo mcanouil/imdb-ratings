@@ -351,7 +351,7 @@ streak_data <- theatres_raw_data[
 ][
   between(date, today() - days(as.numeric(grepl("02-29$", today()))) - months(12), today())
 ][
-  date %in% head(unique(date), 365)
+  date %in% head(sort(unique(date), decreasing = TRUE), 365)
 ][
   j = list(
     count = sum(!is.na(theatre)),
