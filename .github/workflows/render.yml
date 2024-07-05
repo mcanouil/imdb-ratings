@@ -70,7 +70,7 @@ jobs:
       - name: Create Pull Request
         shell: bash
         run: |
-          gh pr create --fill-first --base "main" --head "${{ env.BRANCH }}"
+          gh pr create --fill-first --base "main" --head "${{ env.BRANCH }}" --label "Type: CI/CD :robot:"
 
       - name: Merge Pull Request
         shell: bash
