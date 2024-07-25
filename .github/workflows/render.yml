@@ -51,6 +51,7 @@ jobs:
             any::showtext
             any::svglite
             any::jsonlite
+            any::rvest
       
       - name: Render figures
         shell: bash
