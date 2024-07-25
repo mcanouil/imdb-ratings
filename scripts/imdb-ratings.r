@@ -7,6 +7,7 @@ library(lubridate)
 library(showtext)
 # library(ragg)
 library(svglite)
+library(rvest)
 
 Sys.setlocale("LC_TIME", "en_US.UTF-8")
 
@@ -496,3 +497,32 @@ count_plot <- ggplot(data = count_data) +
 svglite(filename = "media/counts.svg", width = 8, height = 6.5)
 print(count_plot)
 invisible(dev.off())
+
+rvest::read_html("https://www.imdb.com/user/ur56341222/ratings") |>
+  rvest::html_element(xpath = "//div[@data-testid='list-page-mc-total-items']") |>
+  rvest::html_text() |>
+  (function(x) {
+    n <- format(as.numeric(gsub("([0-9]+) .*", "\\1", x)), big.mark = ",")
+    sprintf(
+      paste(
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="37" height="20" role="img" aria-label="%s">',
+          '<title>%s</title>',
+          '<linearGradient id="s" x2="0" y2="100%%">',
+          '<stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/>',
+          '</linearGradient>',
+          '<clipPath id="r"><rect width="37" height="20" rx="3" fill="#fff"/></clipPath>',
+          '<g clip-path="url(#r)">',
+            '<rect width="0" height="20" fill="#009e73"/>',
+            '<rect x="0" width="37" height="20" fill="#009e73"/>',
+            '<rect width="37" height="20" fill="url(#s)"/>',
+          '</g>',
+          '<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">',
+            '<text aria-hidden="true" x="185" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="270">%s</text>',
+            '<text x="185" y="140" transform="scale(.1)" fill="#fff" textLength="270">%s</text>',
+          '</g>',
+        '</svg>'
+      ),
+      n, n, n, n
+    )
+  })() |>
+  writeLines(con = "media/imdb.svg")
