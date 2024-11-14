@@ -499,7 +499,7 @@ print(count_plot)
 invisible(dev.off())
 
 rvest::read_html("https://www.imdb.com/user/ur56341222/ratings") |>
-  rvest::html_element(xpath = "//div[@data-testid='list-page-mc-total-items']") |>
+  rvest::html_element(css = "li.ipc-inline-list__item") |>
   rvest::html_text() |>
   (function(x) {
     n <- format(as.numeric(gsub("([0-9]+) .*", "\\1", x)), big.mark = ",")
