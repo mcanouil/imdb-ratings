@@ -30,7 +30,6 @@
 </defs>
 <g clip-path='url(#cpMjguNzd8NTcwLjUyfDE3LjczfDEwNi42OQ==)'>
 <rect x='28.77' y='17.73' width='541.75' height='88.95' style='stroke-width: 1.07; stroke: none; fill: #333333;' />
-<rect x='31.31' y='57.13' width='8.13' height='10.17' style='stroke-width: 0.21; stroke: #FAFAFA; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='31.31' y='69.83' width='8.13' height='10.17' style='stroke-width: 0.21; stroke: #FAFAFA; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='31.31' y='82.54' width='8.13' height='10.17' style='stroke-width: 0.21; stroke: #FAFAFA; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
 <rect x='31.31' y='95.25' width='8.13' height='10.17' style='stroke-width: 0.21; stroke: #FAFAFA; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFFFF; fill-opacity: 0.051;' />
@@ -395,6 +394,7 @@
 <rect x='559.85' y='31.71' width='8.13' height='10.17' style='stroke-width: 0.21; stroke: #FAFAFA; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <rect x='559.85' y='44.42' width='8.13' height='10.17' style='stroke-width: 0.21; stroke: #FAFAFA; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <rect x='559.85' y='57.13' width='8.13' height='10.17' style='stroke-width: 0.21; stroke: #FAFAFA; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
+<rect x='559.85' y='69.83' width='8.13' height='10.17' style='stroke-width: 0.21; stroke: #FAFAFA; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <path d='M 36.18 84.88 L 36.10 87.76 L 36.17 89.83 L 34.83 89.83 L 34.89 87.90 L 34.89 86.24 L 33.76 86.54 L 33.66 86.47 L 33.66 85.41 L 35.99 84.74 L 36.18 84.88 Z' style='fill-rule: nonzero; fill: #FAFAFA; stroke-width: 0.75; stroke: none;' />
 <path d='M 56.51 72.17 L 56.43 75.05 L 56.50 77.12 L 55.16 77.12 L 55.21 75.19 L 55.21 73.54 L 54.09 73.84 L 53.99 73.77 L 53.99 72.70 L 56.32 72.03 L 56.51 72.17 Z' style='fill-rule: nonzero; fill: #FAFAFA; stroke-width: 0.75; stroke: none;' />
 <path d='M 56.51 84.88 L 56.43 87.76 L 56.50 89.83 L 55.16 89.83 L 55.21 87.90 L 55.21 86.24 L 54.09 86.54 L 53.99 86.47 L 53.99 85.41 L 56.32 84.74 L 56.51 84.88 Z' style='fill-rule: nonzero; fill: #FAFAFA; stroke-width: 0.75; stroke: none;' />
