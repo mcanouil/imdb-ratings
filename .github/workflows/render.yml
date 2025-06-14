@@ -72,21 +72,29 @@ jobs:
       
       - name: Commit
         shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git add media/*
           git commit -m "${COMMIT}"
       
       - name: Push changes
         shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git push --force origin ${BRANCH}
       
       - name: Create Pull Request
         shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh pr create --fill-first --base "main" --head "${BRANCH}" --label "Type: CI/CD :robot:"
 
       - name: Merge Pull Request
         shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh pr merge --auto --squash
