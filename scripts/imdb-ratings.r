@@ -55,19 +55,45 @@ theme_mc <- function(
     aspect.ratio = NULL,
 
     axis.title = NULL,
-    axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = half_line), vjust = 1),
-    axis.title.x.top = ggplot2::element_text(margin = ggplot2::margin(b = half_line), vjust = 0),
+    axis.title.x = ggplot2::element_text(
+      margin = ggplot2::margin(t = half_line),
+      vjust = 1
+    ),
+    axis.title.x.top = ggplot2::element_text(
+      margin = ggplot2::margin(b = half_line),
+      vjust = 0
+    ),
     axis.title.x.bottom = NULL,
-    axis.title.y = ggplot2::element_text(angle = 90, margin = ggplot2::margin(r = half_line), vjust = 1),
+    axis.title.y = ggplot2::element_text(
+      angle = 90,
+      margin = ggplot2::margin(r = half_line),
+      vjust = 1
+    ),
     axis.title.y.left = NULL,
-    axis.title.y.right = ggplot2::element_text(angle = -90, margin = ggplot2::margin(l = half_line), vjust = 0),
+    axis.title.y.right = ggplot2::element_text(
+      angle = -90,
+      margin = ggplot2::margin(l = half_line),
+      vjust = 0
+    ),
     axis.text = ggplot2::element_text(size = ggplot2::rel(0.8), colour = bc[3]),
-    axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 0.8 * half_line / 2), vjust = 1),
-    axis.text.x.top = ggplot2::element_text(margin = ggplot2::margin(b = 0.8 * half_line / 2), vjust = 0),
+    axis.text.x = ggplot2::element_text(
+      margin = ggplot2::margin(t = 0.8 * half_line / 2),
+      vjust = 1
+    ),
+    axis.text.x.top = ggplot2::element_text(
+      margin = ggplot2::margin(b = 0.8 * half_line / 2),
+      vjust = 0
+    ),
     axis.text.x.bottom = NULL,
-    axis.text.y = ggplot2::element_text(margin = ggplot2::margin(r = 0.8 * half_line / 2), hjust = 1),
+    axis.text.y = ggplot2::element_text(
+      margin = ggplot2::margin(r = 0.8 * half_line / 2),
+      hjust = 1
+    ),
     axis.text.y.left = NULL,
-    axis.text.y.right = ggplot2::element_text(margin = ggplot2::margin(l = 0.8 * half_line / 2), hjust = 0),
+    axis.text.y.right = ggplot2::element_text(
+      margin = ggplot2::margin(l = 0.8 * half_line / 2),
+      hjust = 0
+    ),
     axis.ticks = ggplot2::element_line(colour = bc[3]),
     axis.ticks.x = NULL,
     axis.ticks.x.top = NULL,
@@ -113,13 +139,21 @@ theme_mc <- function(
     legend.box.spacing = ggplot2::unit(2 * half_line, "pt"),
 
     panel.background = ggplot2::element_rect(fill = bc[1], colour = NA),
-    panel.border = ggplot2::element_rect(fill = NA, colour = bc[3], linewidth = 0.5, linetype = "solid"),
+    panel.border = ggplot2::element_rect(
+      fill = NA,
+      colour = bc[3],
+      linewidth = 0.5,
+      linetype = "solid"
+    ),
     panel.spacing = ggplot2::unit(half_line, "pt"),
     panel.spacing.x = NULL,
     panel.spacing.y = NULL,
     panel.grid = ggplot2::element_line(colour = bc[2]),
     panel.grid.major = ggplot2::element_line(colour = bc[2]),
-    panel.grid.minor = ggplot2::element_line(colour = bc[2], linewidth = ggplot2::rel(0.5)),
+    panel.grid.minor = ggplot2::element_line(
+      colour = bc[2],
+      linewidth = ggplot2::rel(0.5)
+    ),
     panel.grid.major.x = NULL,
     panel.grid.major.y = NULL,
     panel.grid.minor.x = NULL,
@@ -150,7 +184,11 @@ theme_mc <- function(
       margin = ggplot2::margin(t = half_line)
     ),
     plot.caption.position = "plot",
-    plot.tag = ggplot2::element_text(size = ggplot2::rel(1.25), hjust = 0.5, vjust = 0.5),
+    plot.tag = ggplot2::element_text(
+      size = ggplot2::rel(1.25),
+      hjust = 0.5,
+      vjust = 0.5
+    ),
     plot.tag.position = "topleft",
     plot.margin = ggplot2::margin(half_line, half_line, half_line, half_line),
 
@@ -163,7 +201,12 @@ theme_mc <- function(
     strip.text = ggplot2::element_text(
       colour = bc[3],
       size = ggplot2::rel(0.8),
-      margin = ggplot2::margin(0.8 * half_line, 0.8 * half_line, 0.8 * half_line, 0.8 * half_line)
+      margin = ggplot2::margin(
+        0.8 * half_line,
+        0.8 * half_line,
+        0.8 * half_line,
+        0.8 * half_line
+      )
     ),
     strip.text.x = NULL,
     strip.text.y = ggplot2::element_text(angle = -90),
@@ -187,10 +230,18 @@ theme_update(
   axis.text.y = element_markdown()
 )
 options(
-  ggplot2.discrete.colour = function(...) ggplot2::scale_colour_viridis_d(..., begin = 0.15, end = 0.85),
-  ggplot2.discrete.fill = function(...) ggplot2::scale_fill_viridis_d(..., begin = 0.15, end = 0.85),
-  ggplot2.continuous.colour = function(...) ggplot2::scale_colour_viridis_c(..., begin = 0.15, end = 0.85),
-  ggplot2.continuous.fill = function(...) ggplot2::scale_fill_viridis_c(..., begin = 0.15, end = 0.85)
+  ggplot2.discrete.colour = function(...) {
+    ggplot2::scale_colour_viridis_d(..., begin = 0.15, end = 0.85)
+  },
+  ggplot2.discrete.fill = function(...) {
+    ggplot2::scale_fill_viridis_d(..., begin = 0.15, end = 0.85)
+  },
+  ggplot2.continuous.colour = function(...) {
+    ggplot2::scale_colour_viridis_c(..., begin = 0.15, end = 0.85)
+  },
+  ggplot2.continuous.fill = function(...) {
+    ggplot2::scale_fill_viridis_c(..., begin = 0.15, end = 0.85)
+  }
 )
 
 theatres_raw_data <- fread(file = here("data", "theatres.csv"))
@@ -214,7 +265,11 @@ theatres_complete_data <- theatres_raw_data[
 all_years_streak_data <- theatres_complete_data[
   j = list(
     count = sum(!is.na(theatre)),
-    month = sub("May.", "May", sprintf("%s.", as.character(month(date, label = TRUE, abbr = TRUE)))),
+    month = sub(
+      "May.",
+      "May",
+      sprintf("%s.", as.character(month(date, label = TRUE, abbr = TRUE)))
+    ),
     year = year,
     month_num = month(date),
     wday = wday
@@ -243,7 +298,8 @@ all_week_month_breaks <- all_years_streak_data[
   j = list(week = week, n = .N),
   by = c("month_num", "month")
 ][
-  j = month_start := n == max(n) & as.numeric(week) == max(sort(unique(as.numeric(week)))[1:2]),
+  j = month_start := n == max(n) &
+    as.numeric(week) == max(sort(unique(as.numeric(week)))[1:2]),
   by = c("month_num", "month")
 ][
   i = (month_start),
@@ -277,7 +333,7 @@ streak_geoms <- list(
   geom_tile(
     data = ~ .x[
       between(date, ymd("2020-03-16"), ymd("2020-06-21")) |
-      between(date, ymd("2020-11-02"), ymd("2021-05-18"))
+        between(date, ymd("2020-11-02"), ymd("2021-05-18"))
     ],
     fill = "#21908CFF",
     alpha = 0.3
@@ -350,13 +406,21 @@ streak_data <- theatres_raw_data[
   i = J(date = seq(min(date), today(), by = "1 day")),
   on = "date"
 ][
-  between(date, today() - days(as.numeric(grepl("02-29$", today()))) - months(12), today())
+  between(
+    date,
+    today() - days(as.numeric(grepl("02-29$", today()))) - months(12),
+    today()
+  )
 ][
   date %in% head(sort(unique(date), decreasing = TRUE), 365)
 ][
   j = list(
     count = sum(!is.na(theatre)),
-    month = sub("May.", "May", sprintf("%s.", as.character(month(date, label = TRUE, abbr = TRUE)))),
+    month = sub(
+      "May.",
+      "May",
+      sprintf("%s.", as.character(month(date, label = TRUE, abbr = TRUE)))
+    ),
     year = year(date),
     month_num = month(date),
     wday = wday(date, label = TRUE, abbr = FALSE, week_start = 1)
@@ -499,30 +563,34 @@ print(count_plot)
 invisible(dev.off())
 
 rvest::read_html("https://www.imdb.com/user/ur56341222/ratings") |>
-  rvest::html_element(css = "li.ipc-inline-list__item") |>
+  rvest::html_elements(css = "li.ipc-inline-list__item") |>
   rvest::html_text() |>
   (function(x) {
+    x <- grep(" titles", x, value = TRUE)
     n <- format(as.numeric(gsub("([0-9]+) .*", "\\1", x)), big.mark = ",")
     sprintf(
       paste(
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="37" height="20" role="img" aria-label="%s">',
-          '<title>%s</title>',
-          '<linearGradient id="s" x2="0" y2="100%%">',
-          '<stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/>',
-          '</linearGradient>',
-          '<clipPath id="r"><rect width="37" height="20" rx="3" fill="#fff"/></clipPath>',
-          '<g clip-path="url(#r)">',
-            '<rect width="0" height="20" fill="#009e73"/>',
-            '<rect x="0" width="37" height="20" fill="#009e73"/>',
-            '<rect width="37" height="20" fill="url(#s)"/>',
-          '</g>',
-          '<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">',
-            '<text aria-hidden="true" x="185" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="270">%s</text>',
-            '<text x="185" y="140" transform="scale(.1)" fill="#fff" textLength="270">%s</text>',
-          '</g>',
+        '<title>%s</title>',
+        '<linearGradient id="s" x2="0" y2="100%%">',
+        '<stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/>',
+        '</linearGradient>',
+        '<clipPath id="r"><rect width="37" height="20" rx="3" fill="#fff"/></clipPath>',
+        '<g clip-path="url(#r)">',
+        '<rect width="0" height="20" fill="#009e73"/>',
+        '<rect x="0" width="37" height="20" fill="#009e73"/>',
+        '<rect width="37" height="20" fill="url(#s)"/>',
+        '</g>',
+        '<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">',
+        '<text aria-hidden="true" x="185" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="270">%s</text>',
+        '<text x="185" y="140" transform="scale(.1)" fill="#fff" textLength="270">%s</text>',
+        '</g>',
         '</svg>'
       ),
-      n, n, n, n
+      n,
+      n,
+      n,
+      n
     )
   })() |>
   writeLines(con = "media/imdb.svg")
