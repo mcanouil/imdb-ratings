@@ -13,6 +13,9 @@ Sys.setlocale("LC_TIME", "en_US.UTF-8")
 
 fig_caption <- NULL # "&copy; Micka&euml;l '<i style='color:#21908CFF;'>Coeos</i>' Canouil"
 
+height_count_plot <- 8
+height_streak_plot <- 13.5
+
 theme_coeos <- function(
   base_size = 11,
   base_family = "Alegreya Sans",
@@ -430,7 +433,11 @@ all_years_streak_plot <- ggplot(data = all_years_streak_data) +
   facet_grid(rows = vars(year))
 
 # Streak of movies seen in a movie theatre per week and years.
-svglite(filename = "media/streak-years.svg", width = 8, height = 13)
+svglite(
+  filename = "media/streak-years.svg",
+  width = 8,
+  height = height_streak_plot
+)
 print(all_years_streak_plot)
 invisible(dev.off())
 
@@ -592,7 +599,7 @@ count_plot <- ggplot(data = count_data) +
   )
 
 # Counts of movies seen in a movie theatre per month and year.
-svglite(filename = "media/counts.svg", width = 8, height = 7)
+svglite(filename = "media/counts.svg", width = 8, height = height_count_plot)
 print(count_plot)
 invisible(dev.off())
 
