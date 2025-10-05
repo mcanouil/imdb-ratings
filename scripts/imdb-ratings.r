@@ -1,10 +1,10 @@
 library(here)
 library(data.table)
 library(ggplot2)
-library(ggtext)
+library(marquee)
 library(scales)
 library(lubridate)
-library(showtext)
+library(systemfonts)
 # library(ragg)
 library(svglite)
 library(rvest)
@@ -13,36 +13,41 @@ Sys.setlocale("LC_TIME", "en_US.UTF-8")
 
 fig_caption <- NULL # "&copy; Micka&euml;l '<i style='color:#21908CFF;'>Coeos</i>' Canouil"
 
-font <- "Alegreya Sans"
-font_add_google(font, font, regular.wt = 300)
-showtext_auto()
-
-theme_mc <- function(
+theme_coeos <- function(
   base_size = 11,
-  base_family = "",
+  base_family = "Alegreya Sans",
+  header_family = NULL,
   base_line_size = base_size / 22,
   base_rect_size = base_size / 22,
-  theme = "mc"
+  ink = "#fafafa",
+  paper = "#333333",
+  accent = "#7f7f7f"
 ) {
-  bc <- c("#333333", "#7F7F7F", "#FAFAFA")
+  systemfonts::require_font(base_family)
+
   half_line <- base_size / 2
+
+  if (is.null(header_family)) {
+    header_family <- base_family
+  }
+
   ggplot2::theme(
     line = ggplot2::element_line(
-      colour = bc[3],
+      colour = ink,
       linewidth = base_line_size,
       linetype = 1,
       lineend = "butt"
     ),
     rect = ggplot2::element_rect(
-      fill = bc[1],
-      colour = bc[3],
+      fill = paper,
+      colour = ink,
       linewidth = base_rect_size,
       linetype = 1
     ),
     text = ggplot2::element_text(
       family = base_family,
       face = "plain",
-      colour = bc[3],
+      colour = ink,
       size = base_size,
       lineheight = 0.9,
       hjust = 0.5,
@@ -51,7 +56,21 @@ theme_mc <- function(
       margin = ggplot2::margin(),
       debug = FALSE
     ),
+
+    point = ggplot2::element_point(
+      colour = ink,
+      size = base_size / 4,
+      shape = 19
+    ),
+    polygon = ggplot2::element_polygon(
+      colour = ink,
+      fill = paper,
+      linewidth = base_line_size
+    ),
+
     title = NULL,
+    spacing = NULL,
+    margins = NULL,
     aspect.ratio = NULL,
 
     axis.title = NULL,
@@ -75,7 +94,7 @@ theme_mc <- function(
       margin = ggplot2::margin(l = half_line),
       vjust = 0
     ),
-    axis.text = ggplot2::element_text(size = ggplot2::rel(0.8), colour = bc[3]),
+    axis.text = ggplot2::element_text(size = ggplot2::rel(0.8), colour = ink),
     axis.text.x = ggplot2::element_text(
       margin = ggplot2::margin(t = 0.8 * half_line / 2),
       vjust = 1
@@ -94,7 +113,11 @@ theme_mc <- function(
       margin = ggplot2::margin(l = 0.8 * half_line / 2),
       hjust = 0
     ),
-    axis.ticks = ggplot2::element_line(colour = bc[3]),
+    axis.text.r = ggplot2::element_text(
+      margin = ggplot2::margin(l = 0.8 * half_line / 2),
+      hjust = 0.5
+    ),
+    axis.ticks = ggplot2::element_line(colour = ink),
     axis.ticks.x = NULL,
     axis.ticks.x.top = NULL,
     axis.ticks.x.bottom = NULL,
@@ -108,6 +131,7 @@ theme_mc <- function(
     axis.ticks.length.y = NULL,
     axis.ticks.length.y.left = NULL,
     axis.ticks.length.y.right = NULL,
+    axis.minor.ticks.length = ggplot2::rel(0.75),
     axis.line = ggplot2::element_blank(),
     axis.line.x = NULL,
     axis.line.x.top = NULL,
@@ -116,19 +140,21 @@ theme_mc <- function(
     axis.line.y.left = NULL,
     axis.line.y.right = NULL,
 
-    legend.background = ggplot2::element_rect(fill = bc[1], colour = NA),
+    legend.background = ggplot2::element_rect(fill = paper, colour = NA),
     legend.margin = ggplot2::margin(half_line, half_line, half_line, half_line),
     legend.spacing = ggplot2::unit(2 * half_line, "pt"),
     legend.spacing.x = NULL,
     legend.spacing.y = NULL,
-    legend.key = ggplot2::element_rect(fill = bc[1], colour = bc[3]),
+    legend.key = ggplot2::element_rect(fill = paper, colour = ink),
     legend.key.size = ggplot2::unit(1.2, "lines"),
     legend.key.height = NULL,
     legend.key.width = NULL,
+    legend.key.spacing = ggplot2::unit(half_line / 4, "pt"),
     legend.text = ggplot2::element_text(size = ggplot2::rel(0.8)),
     legend.text.align = NULL,
     legend.title = ggplot2::element_text(hjust = 0),
     legend.title.align = NULL,
+    legend.ticks.length = ggplot2::rel(0.2),
     legend.position = "right",
     legend.direction = NULL,
     legend.justification = "center",
@@ -138,21 +164,24 @@ theme_mc <- function(
     legend.box.background = ggplot2::element_blank(),
     legend.box.spacing = ggplot2::unit(2 * half_line, "pt"),
 
-    panel.background = ggplot2::element_rect(fill = bc[1], colour = NA),
+    panel.background = ggplot2::element_rect(fill = paper, colour = NA),
     panel.border = ggplot2::element_rect(
       fill = NA,
-      colour = bc[3],
+      colour = ink,
       linewidth = 0.5,
       linetype = "solid"
     ),
     panel.spacing = ggplot2::unit(half_line, "pt"),
     panel.spacing.x = NULL,
     panel.spacing.y = NULL,
-    panel.grid = ggplot2::element_line(colour = bc[2]),
-    panel.grid.major = ggplot2::element_line(colour = bc[2]),
+    panel.grid = ggplot2::element_line(colour = accent),
+    panel.grid.major = ggplot2::element_line(
+      colour = accent,
+      linewidth = ggplot2::rel(0.60)
+    ),
     panel.grid.minor = ggplot2::element_line(
-      colour = bc[2],
-      linewidth = ggplot2::rel(0.5)
+      colour = accent,
+      linewidth = ggplot2::rel(0.30)
     ),
     panel.grid.major.x = NULL,
     panel.grid.major.y = NULL,
@@ -160,8 +189,9 @@ theme_mc <- function(
     panel.grid.minor.y = NULL,
     panel.ontop = FALSE,
 
-    plot.background = ggplot2::element_rect(colour = bc[1]),
+    plot.background = ggplot2::element_rect(colour = paper),
     plot.title = ggplot2::element_text(
+      family = header_family,
       size = ggplot2::rel(1.25),
       face = "bold",
       hjust = 0,
@@ -170,6 +200,7 @@ theme_mc <- function(
     ),
     plot.title.position = "plot",
     plot.subtitle = ggplot2::element_text(
+      family = header_family,
       size = ggplot2::rel(1),
       face = "italic",
       hjust = 0,
@@ -192,14 +223,15 @@ theme_mc <- function(
     plot.tag.position = "topleft",
     plot.margin = ggplot2::margin(half_line, half_line, half_line, half_line),
 
-    strip.background = ggplot2::element_rect(fill = bc[1], colour = bc[3]),
+    strip.background = ggplot2::element_rect(fill = paper, colour = ink),
     strip.background.x = NULL,
     strip.background.y = NULL,
+    strip.clip = "inherit",
     strip.placement = "inside",
     strip.placement.x = NULL,
     strip.placement.y = NULL,
     strip.text = ggplot2::element_text(
-      colour = bc[3],
+      colour = ink,
       size = ggplot2::rel(0.8),
       margin = ggplot2::margin(
         0.8 * half_line,
@@ -210,38 +242,42 @@ theme_mc <- function(
     ),
     strip.text.x = NULL,
     strip.text.y = ggplot2::element_text(angle = -90),
+    strip.text.y.left = ggplot2::element_text(angle = 90),
     strip.switch.pad.grid = ggplot2::unit(half_line / 2, "pt"),
     strip.switch.pad.wrap = ggplot2::unit(half_line / 2, "pt"),
+
+    palette.colour.discrete = function(...) {
+      ggplot2::scale_colour_viridis_d(..., begin = 0.15, end = 0.85)
+    },
+    palette.fill.discrete = function(...) {
+      ggplot2::scale_fill_viridis_d(..., begin = 0.15, end = 0.85)
+    },
+    palette.colour.continuous = function(...) {
+      ggplot2::scale_colour_viridis_c(..., begin = 0.15, end = 0.85)
+    },
+    palette.fill.continuous = function(...) {
+      ggplot2::scale_fill_viridis_c(..., begin = 0.15, end = 0.85)
+    },
+
+    geom = ggplot2::element_geom(ink = ink),
 
     complete = TRUE
   )
 }
-theme_set(theme_mc(base_size = 11, base_family = font))
-theme_update(
+
+set_theme(theme_coeos(base_size = 11))
+
+update_theme(
   plot.title.position = "plot",
   plot.caption.position = "plot",
-  plot.title = element_text(), # element_markdown(),
-  plot.subtitle = element_markdown(face = "italic"),
-  plot.caption = element_markdown(face = "italic"),
-  axis.title.x = element_markdown(),
-  axis.text.x = element_markdown(),
-  axis.text.x.top = element_markdown(),
-  axis.title.y = element_markdown(),
-  axis.text.y = element_markdown()
-)
-options(
-  ggplot2.discrete.colour = function(...) {
-    ggplot2::scale_colour_viridis_d(..., begin = 0.15, end = 0.85)
-  },
-  ggplot2.discrete.fill = function(...) {
-    ggplot2::scale_fill_viridis_d(..., begin = 0.15, end = 0.85)
-  },
-  ggplot2.continuous.colour = function(...) {
-    ggplot2::scale_colour_viridis_c(..., begin = 0.15, end = 0.85)
-  },
-  ggplot2.continuous.fill = function(...) {
-    ggplot2::scale_fill_viridis_c(..., begin = 0.15, end = 0.85)
-  }
+  plot.title = element_text(), # element_marquee(),
+  plot.subtitle = element_marquee(style = classic_style(italic = TRUE)),
+  plot.caption = element_marquee(style = classic_style(italic = TRUE)),
+  axis.title.x = element_marquee(),
+  axis.text.x = element_marquee(),
+  axis.text.x.top = element_marquee(),
+  axis.title.y = element_marquee(),
+  axis.text.y = element_marquee()
 )
 
 theatres_raw_data <- fread(file = here("data", "theatres.csv"))
@@ -315,7 +351,7 @@ streak_geoms <- list(
   geom_tile(
     data = ~ .x[month_num %% 2 == 0],
     show.legend = FALSE,
-    colour = "#FAFAFA66",
+    colour = "#fafafa66",
     fill = "white",
     alpha = 0.05,
     width = 0.8,
@@ -324,7 +360,7 @@ streak_geoms <- list(
   geom_tile(
     data = ~ .x[month_num %% 2 == 1],
     show.legend = FALSE,
-    colour = "#FAFAFA66",
+    colour = "#fafafa66",
     fill = NA,
     alpha = 0.05,
     width = 0.8,
@@ -335,25 +371,23 @@ streak_geoms <- list(
       between(date, ymd("2020-03-16"), ymd("2020-06-21")) |
         between(date, ymd("2020-11-02"), ymd("2021-05-18"))
     ],
-    fill = "#21908CFF",
+    fill = "#21908cff",
     alpha = 0.3
   ),
-  geom_richtext(
+  geom_marquee(
     data = ~ .x[count != 0],
-    colour = "#FAFAFA",
+    colour = "#fafafa",
     na.rm = TRUE,
-    family = font,
-    fontface = "bold",
-    size = 3.5,
-    fill = NA,
-    label.colour = NA
+    style = classic_style(weight = "bold", baseline = -1),
+    size = 2
   ),
   scale_y_discrete(
     expand = expansion(add = 0.5),
     labels = function(x) sub("([[:alpha:]]{3}).*", "\\1.", x)
   ),
-  scale_colour_viridis_c(),
+  scale_colour_viridis_c(name = "Count"),
   scale_fill_viridis_c(
+    name = "Count",
     begin = 0.25,
     end = 1,
     limits = c(1, NA),
@@ -366,7 +400,10 @@ streak_geoms <- list(
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     axis.ticks = element_blank(),
-    plot.caption = element_markdown(face = "italic", size = rel(0.90))
+    plot.caption = element_marquee(
+      style = classic_style(italic = TRUE),
+      size = rel(0.90)
+    )
   )
 )
 
@@ -388,15 +425,13 @@ all_years_streak_plot <- ggplot(data = all_years_streak_data) +
       format(sum(all_years_streak_data[["count"]]), big.mark = ",")
     ),
     caption = fig_caption,
-    colour = "Count",
-    fill = "Count",
     x = NULL, # "Week Number",
     y = NULL # "Day"
   ) +
   facet_grid(rows = vars(year))
 
 # Streak of movies seen in a movie theatre per week and years.
-svglite(filename = "media/streak-years.svg", width = 8, height = 12)
+svglite(filename = "media/streak-years.svg", width = 8, height = 13)
 print(all_years_streak_plot)
 invisible(dev.off())
 
@@ -460,7 +495,7 @@ streak_plot <- ggplot(data = streak_data) +
   ) +
   labs(
     caption = sprintf(
-      "<b>%s movies seen</b> in a movie theatre <b>in the last year</b>.",
+      "**%s movies seen** in a movie theatre **in the last year**.",
       format(sum(streak_data[["count"]]), nsmall = 0, big.mark = ",")
     )
   )
@@ -490,7 +525,7 @@ count_plot <- ggplot(data = count_data) +
   geom_tile(
     mapping = aes(fill = N),
     alpha = 0.3,
-    colour = "#FAFAFA66",
+    colour = "#fafafa66",
     linewidth = 0.15,
     width = 0.8,
     height = 0.8,
@@ -498,27 +533,24 @@ count_plot <- ggplot(data = count_data) +
   ) +
   geom_tile(
     data = ~ .x[which.max(N)],
-    colour = "#FAFAFA66",
+    colour = "#fafafa66",
     fill = NA,
     linewidth = 1,
     width = 0.8,
     height = 0.8,
     linejoin = "round"
   ) +
-  geom_richtext(
-    colour = "#FAFAFA",
+  geom_marquee(
+    colour = "#fafafa",
     na.rm = TRUE,
-    family = font,
-    fontface = "bold",
-    size = 3.5,
-    fill = NA,
-    label.colour = NA
+    style = classic_style(weight = "bold", baseline = -1),
+    size = 3.5
   ) +
   scale_x_discrete(
     labels = function(x) {
       ifelse(
         x %in% unique(count_data[which.max(N), month]),
-        sprintf("<b>%s</b>", x),
+        sprintf("**%s**", x),
         x
       )
     },
@@ -529,7 +561,7 @@ count_plot <- ggplot(data = count_data) +
     labels = function(x) {
       ifelse(
         x %in% unique(count_data[which.max(N), year]),
-        sprintf("<b>%s</b>", x),
+        sprintf("**%s**", x),
         x
       )
     },
@@ -548,17 +580,20 @@ count_plot <- ggplot(data = count_data) +
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     axis.ticks = element_blank(),
-    plot.caption = element_markdown(face = "italic", size = rel(0.90))
+    plot.caption = element_marquee(
+      style = classic_style(italic = TRUE),
+      size = rel(0.90)
+    )
   ) +
   labs(
     caption = sprintf(
-      "<b>%s movies seen</b> in <b>a movie theatre</b>.",
+      "**%s movies seen** in **a movie theatre**.",
       format(sum(count_data[["N"]]), nsmall = 0, big.mark = ",")
     )
   )
 
 # Counts of movies seen in a movie theatre per month and year.
-svglite(filename = "media/counts.svg", width = 8, height = 6.5)
+svglite(filename = "media/counts.svg", width = 8, height = 7)
 print(count_plot)
 invisible(dev.off())
 
