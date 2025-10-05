@@ -58,10 +58,10 @@ jobs:
             any::here
             any::data.table
             any::ggplot2
-            any::ggtext
+            any::marquee
             any::scales
             any::lubridate
-            any::showtext
+            any::systemfonts
             any::svglite
             any::jsonlite
             any::rvest
