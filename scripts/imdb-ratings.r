@@ -11,21 +11,35 @@ library(rvest)
 
 Sys.setlocale("LC_TIME", "en_US.UTF-8")
 
-fig_caption <- NULL # "&copy; Micka&euml;l '<i style='color:#21908CFF;'>Coeos</i>' Canouil"
+fig_caption <- NULL # "&copy; Micka&euml;l CANOUIL"
 
 height_count_plot <- 8
 height_streak_plot <- 13.5
 
-theme_coeos <- function(
+theme_mcanouil <- function(
   base_size = 11,
   base_family = "Alegreya Sans",
   header_family = NULL,
   base_line_size = base_size / 22,
   base_rect_size = base_size / 22,
-  ink = "#fafafa",
-  paper = "#333333",
-  accent = "#7f7f7f"
+  mode = c("dark", "light")
 ) {
+  mode <- match.arg(mode, choices = c("dark", "light"))
+
+  # Set ink/paper/accent based on mode
+  switch(
+    EXPR = mode,
+    dark = {
+      ink <- "#fafafa"
+      paper <- "#333333"
+      accent <- "#7f7f7f"
+    },
+    light = {
+      ink <- "#333333"
+      paper <- "#fafafa"
+      accent <- "#7f7f7f"
+    }
+  )
   systemfonts::require_font(base_family)
 
   half_line <- base_size / 2
@@ -267,7 +281,81 @@ theme_coeos <- function(
   )
 }
 
-set_theme(theme_coeos(base_size = 11))
+create_streak_geoms <- function(mode = c("dark", "light")) {
+  mode <- match.arg(mode)
+  ink <- if (mode == "dark") "#fafafa" else "#333333"
+  tile_colour <- paste0(ink, "66")
+
+  list(
+    ggplot2::geom_tile(
+      data = ~ .x[month_num %% 2 == 0],
+      show.legend = FALSE,
+      colour = tile_colour,
+      fill = if (mode == "dark") "white" else "black",
+      alpha = 0.05,
+      width = 0.8,
+      height = 0.8
+    ),
+    ggplot2::geom_tile(
+      data = ~ .x[month_num %% 2 == 1],
+      show.legend = FALSE,
+      colour = tile_colour,
+      fill = NA,
+      alpha = 0.05,
+      width = 0.8,
+      height = 0.8
+    ),
+    ggplot2::geom_tile(
+      data = ~ .x[
+        data.table::between(
+          date,
+          lubridate::ymd("2020-03-16"),
+          lubridate::ymd("2020-06-21")
+        ) |
+          data.table::between(
+            date,
+            lubridate::ymd("2020-11-02"),
+            lubridate::ymd("2021-05-18")
+          )
+      ],
+      fill = "#21908cff",
+      alpha = 0.3
+    ),
+    marquee::geom_marquee(
+      data = ~ .x[count != 0],
+      colour = ink,
+      na.rm = TRUE,
+      style = marquee::classic_style(weight = "bold", baseline = -1),
+      size = 2
+    ),
+    ggplot2::scale_y_discrete(
+      expand = ggplot2::expansion(add = 0.5),
+      labels = function(x) base::sub("([[:alpha:]]{3}).*", "\\1.", x)
+    ),
+    ggplot2::scale_colour_viridis_c(name = "Count"),
+    ggplot2::scale_fill_viridis_c(
+      name = "Count",
+      begin = 0.25,
+      end = 1,
+      limits = c(1, NA),
+      na.value = NA
+    ),
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      panel.border = ggplot2::element_blank(),
+      legend.position = "none",
+      axis.title.x = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      plot.caption = marquee::element_marquee(
+        style = marquee::classic_style(italic = TRUE),
+        size = ggplot2::rel(0.90)
+      )
+    )
+  )
+}
+
+set_theme(theme_mcanouil(base_size = 11))
 
 update_theme(
   plot.title.position = "plot",
@@ -349,97 +437,121 @@ all_week_month_breaks <- all_years_streak_data[
   j = week := as.numeric(week)
 ]
 
-streak_geoms <- list(
-  geom_tile(
-    data = ~ .x[month_num %% 2 == 0],
-    show.legend = FALSE,
-    colour = "#fafafa66",
-    fill = "white",
-    alpha = 0.05,
-    width = 0.8,
-    height = 0.8
-  ),
-  geom_tile(
-    data = ~ .x[month_num %% 2 == 1],
-    show.legend = FALSE,
-    colour = "#fafafa66",
-    fill = NA,
-    alpha = 0.05,
-    width = 0.8,
-    height = 0.8
-  ),
-  geom_tile(
-    data = ~ .x[
-      between(date, ymd("2020-03-16"), ymd("2020-06-21")) |
-        between(date, ymd("2020-11-02"), ymd("2021-05-18"))
-    ],
-    fill = "#21908cff",
-    alpha = 0.3
-  ),
-  geom_marquee(
-    data = ~ .x[count != 0],
-    colour = "#fafafa",
-    na.rm = TRUE,
-    style = classic_style(weight = "bold", baseline = -1),
-    size = 2
-  ),
-  scale_y_discrete(
-    expand = expansion(add = 0.5),
-    labels = function(x) sub("([[:alpha:]]{3}).*", "\\1.", x)
-  ),
-  scale_colour_viridis_c(name = "Count"),
-  scale_fill_viridis_c(
-    name = "Count",
-    begin = 0.25,
-    end = 1,
-    limits = c(1, NA),
-    na.value = NA
-  ),
-  theme(
-    panel.grid = element_blank(),
-    panel.border = element_blank(),
-    legend.position = "none",
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    axis.ticks = element_blank(),
-    plot.caption = element_marquee(
-      style = classic_style(italic = TRUE),
-      size = rel(0.90)
+create_count_geoms <- function(mode = c("dark", "light")) {
+  mode <- match.arg(mode)
+  ink <- if (mode == "dark") "#fafafa" else "#333333"
+  tile_colour <- paste0(ink, "66")
+
+  list(
+    ggplot2::geom_tile(
+      mapping = ggplot2::aes(fill = .data[["N"]]),
+      alpha = 0.3,
+      colour = tile_colour,
+      linewidth = 0.15,
+      width = 0.8,
+      height = 0.8,
+      linejoin = "round"
+    ),
+    ggplot2::geom_tile(
+      data = ~ .x[which.max(N)],
+      colour = tile_colour,
+      fill = NA,
+      linewidth = 1,
+      width = 0.8,
+      height = 0.8,
+      linejoin = "round"
+    ),
+    marquee::geom_marquee(
+      colour = ink,
+      na.rm = TRUE,
+      style = marquee::classic_style(weight = "bold", baseline = -1),
+      size = 3.5
+    ),
+    ggplot2::scale_fill_viridis_c(
+      begin = 0,
+      end = 0.80,
+      limits = c(1, NA),
+      na.value = NA
+    ),
+    ggplot2::theme(
+      legend.position = "none",
+      panel.grid = ggplot2::element_blank(),
+      panel.border = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      plot.caption = marquee::element_marquee(
+        style = marquee::classic_style(italic = TRUE),
+        size = ggplot2::rel(0.90)
+      )
     )
   )
-)
+}
 
-all_years_streak_plot <- ggplot(data = all_years_streak_data) +
-  aes(
-    x = week,
-    y = factor(wday, levels = rev(levels(wday))),
-    label = count
-  ) +
-  streak_geoms +
-  scale_x_continuous(
-    expand = expansion(add = 0.25),
-    breaks = all_week_month_breaks[["week"]],
-    labels = all_week_month_breaks[["month"]]
-  ) +
-  labs(
-    title = sprintf(
-      "Streak of Movies Seen in a Theatre (%s)",
-      format(sum(all_years_streak_data[["count"]]), big.mark = ",")
-    ),
-    caption = fig_caption,
-    x = NULL, # "Week Number",
-    y = NULL # "Day"
-  ) +
-  facet_grid(rows = vars(year))
+save_plot_both_modes <- function(plot_fn, base_filename, width, height) {
+  for (mode in c("dark", "light")) {
+    # Set theme for this mode
+    ggplot2::set_theme(theme_mcanouil(base_size = 11, mode = mode))
+    ggplot2::update_theme(
+      plot.title.position = "plot",
+      plot.caption.position = "plot",
+      plot.title = marquee::element_marquee(),
+      plot.subtitle = marquee::element_marquee(
+        style = marquee::classic_style(italic = TRUE)
+      ),
+      plot.caption = marquee::element_marquee(
+        style = marquee::classic_style(italic = TRUE)
+      ),
+      axis.title.x = marquee::element_marquee(),
+      axis.text.x = marquee::element_marquee(),
+      axis.text.x.top = marquee::element_marquee(),
+      axis.title.y = marquee::element_marquee(),
+      axis.text.y = marquee::element_marquee()
+    )
+
+    # Generate plot with current mode
+    plot <- plot_fn(mode)
+
+    # Determine filename with mode suffix
+    filename <- sub("\\.svg$", sprintf("-%s.svg", mode), base_filename)
+
+    # Save plot
+    svglite::svglite(filename = filename, width = width, height = height)
+    print(plot)
+    invisible(grDevices::dev.off())
+  }
+}
 
 # Streak of movies seen in a movie theatre per week and years.
-svglite(
-  filename = "media/streak-years.svg",
+save_plot_both_modes(
+  plot_fn = function(mode) {
+    ggplot2::ggplot(data = all_years_streak_data) +
+      ggplot2::aes(
+        x = week,
+        y = factor(wday, levels = rev(levels(wday))),
+        label = count
+      ) +
+      create_streak_geoms(mode) +
+      ggplot2::scale_x_continuous(
+        expand = ggplot2::expansion(add = 0.25),
+        breaks = all_week_month_breaks[["week"]],
+        labels = all_week_month_breaks[["month"]]
+      ) +
+      ggplot2::labs(
+        title = sprintf(
+          "Streak of Movies Seen in a Theatre (%s)",
+          format(sum(all_years_streak_data[["count"]]), big.mark = ",")
+        ),
+        caption = fig_caption,
+        x = NULL, # "Week Number",
+        y = NULL # "Day"
+      ) +
+      ggplot2::facet_grid(rows = ggplot2::vars(year))
+  },
+  base_filename = "media/streak-years.svg",
   width = 8,
   height = height_streak_plot
 )
-print(all_years_streak_plot)
-invisible(dev.off())
 
 streak_data <- theatres_raw_data[
   j = date := as.IDate(date_time)
@@ -490,26 +602,29 @@ week_month_breaks <- streak_data[
   by = c("year", "month")
 ]
 
-streak_plot <- ggplot(data = streak_data) +
-  aes(x = x, y = y, label = count) +
-  streak_geoms +
-  scale_x_continuous(
-    expand = expansion(add = 0.25),
-    breaks = week_month_breaks[["week"]],
-    labels = week_month_breaks[["month"]],
-    position = "top"
-  ) +
-  labs(
-    caption = sprintf(
-      "**%s movies seen** in a movie theatre **in the last year**.",
-      format(sum(streak_data[["count"]]), nsmall = 0, big.mark = ",")
-    )
-  )
-
 # Streak of movies seen in a movie theatre per week and days for the last year.
-svglite(filename = "media/streak.svg", width = 8, height = 1.75)
-print(streak_plot)
-invisible(dev.off())
+save_plot_both_modes(
+  plot_fn = function(mode) {
+    ggplot2::ggplot(data = streak_data) +
+      ggplot2::aes(x = x, y = y, label = count) +
+      create_streak_geoms(mode) +
+      ggplot2::scale_x_continuous(
+        expand = ggplot2::expansion(add = 0.25),
+        breaks = week_month_breaks[["week"]],
+        labels = week_month_breaks[["month"]],
+        position = "top"
+      ) +
+      ggplot2::labs(
+        caption = sprintf(
+          "**%s movies seen** in a movie theatre **in the last year**.",
+          format(sum(streak_data[["count"]]), nsmall = 0, big.mark = ",")
+        )
+      )
+  },
+  base_filename = "media/streak.svg",
+  width = 8,
+  height = 1.75
+)
 
 count_data <- theatres_raw_data[
   j = .N,
@@ -526,82 +641,44 @@ count_data <- theatres_raw_data[
 ][
   j = year := factor(year, levels = rev(unique(year)))
 ]
-count_plot <- ggplot(data = count_data) +
-  aes(x = month, y = year, label = N) +
-  geom_tile(
-    mapping = aes(fill = N),
-    alpha = 0.3,
-    colour = "#fafafa66",
-    linewidth = 0.15,
-    width = 0.8,
-    height = 0.8,
-    linejoin = "round"
-  ) +
-  geom_tile(
-    data = ~ .x[which.max(N)],
-    colour = "#fafafa66",
-    fill = NA,
-    linewidth = 1,
-    width = 0.8,
-    height = 0.8,
-    linejoin = "round"
-  ) +
-  geom_marquee(
-    colour = "#fafafa",
-    na.rm = TRUE,
-    style = classic_style(weight = "bold", baseline = -1),
-    size = 3.5
-  ) +
-  scale_x_discrete(
-    labels = function(x) {
-      ifelse(
-        x %in% unique(count_data[which.max(N), month]),
-        sprintf("**%s**", x),
-        x
-      )
-    },
-    expand = expansion(add = 0.5),
-    position = "top"
-  ) +
-  scale_y_discrete(
-    labels = function(x) {
-      ifelse(
-        x %in% unique(count_data[which.max(N), year]),
-        sprintf("**%s**", x),
-        x
-      )
-    },
-    expand = expansion(add = 0.5)
-  ) +
-  scale_fill_viridis_c(
-    begin = 0,
-    end = 0.80,
-    limits = c(1, NA),
-    na.value = NA
-  ) +
-  theme(
-    legend.position = "none",
-    panel.grid = element_blank(),
-    panel.border = element_blank(),
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    axis.ticks = element_blank(),
-    plot.caption = element_marquee(
-      style = classic_style(italic = TRUE),
-      size = rel(0.90)
-    )
-  ) +
-  labs(
-    caption = sprintf(
-      "**%s movies seen** in **a movie theatre**.",
-      format(sum(count_data[["N"]]), nsmall = 0, big.mark = ",")
-    )
-  )
-
 # Counts of movies seen in a movie theatre per month and year.
-svglite(filename = "media/counts.svg", width = 8, height = height_count_plot)
-print(count_plot)
-invisible(dev.off())
+save_plot_both_modes(
+  plot_fn = function(mode) {
+    ggplot2::ggplot(data = count_data) +
+      ggplot2::aes(x = month, y = year, label = N) +
+      create_count_geoms(mode) +
+      ggplot2::scale_x_discrete(
+        labels = function(x) {
+          ifelse(
+            x %in% unique(count_data[which.max(N), month]),
+            sprintf("**%s**", x),
+            x
+          )
+        },
+        expand = ggplot2::expansion(add = 0.5),
+        position = "top"
+      ) +
+      ggplot2::scale_y_discrete(
+        labels = function(x) {
+          ifelse(
+            x %in% unique(count_data[which.max(N), year]),
+            sprintf("**%s**", x),
+            x
+          )
+        },
+        expand = ggplot2::expansion(add = 0.5)
+      ) +
+      ggplot2::labs(
+        caption = sprintf(
+          "**%s movies seen** in **a movie theatre**.",
+          format(sum(count_data[["N"]]), nsmall = 0, big.mark = ",")
+        )
+      )
+  },
+  base_filename = "media/counts.svg",
+  width = 8,
+  height = height_count_plot
+)
 
 rvest::read_html("https://www.imdb.com/user/ur56341222/ratings") |>
   rvest::html_elements(css = "li.ipc-inline-list__item") |>
