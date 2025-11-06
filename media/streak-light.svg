@@ -216,7 +216,6 @@
 <rect x='549.57' y='43.07' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter; fill: #000000; fill-opacity: 0.051;' />
 <rect x='549.57' y='55.74' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter; fill: #000000; fill-opacity: 0.051;' />
 <rect x='549.57' y='68.41' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter; fill: #000000; fill-opacity: 0.051;' />
-<rect x='28.32' y='43.07' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <rect x='28.32' y='55.74' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <rect x='28.32' y='68.41' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <rect x='28.32' y='81.08' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
@@ -400,6 +399,7 @@
 <rect x='559.79' y='17.74' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <rect x='559.79' y='30.40' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <rect x='559.79' y='43.07' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
+<rect x='559.79' y='55.74' width='8.18' height='10.14' style='stroke-width: 0.43; stroke: #333333; stroke-opacity: 0.40; stroke-linecap: butt; stroke-linejoin: miter;' />
 <g class='glyphgroup' style='fill: #333333;'>
 <path d='M 31.118321 88.132866 L 32.118321 88.132866 L 32.118321 86.132866 L 31.087071 86.132866 L 31.087071 85.132866 L 32.102696 85.132866 L 33.180821 85.132866 L 33.180821 88.132866 L 34.180821 88.132866 L 34.180821 89.132866 L 31.118321 89.132866 L 31.118321 88.132866 ' />
 </g>
