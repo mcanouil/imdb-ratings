@@ -681,7 +681,11 @@ save_plot_both_modes(
   height = height_count_plot
 )
 
-rvest::read_html_live("https://www.imdb.com/user/ur56341222/ratings") |>
+rvest::read_html("https://www.imdb.com/user/ur56341222/ratings") |>
+  (function(x) {
+    Sys.sleep(2L)
+    x
+  })() |>
   rvest::html_elements(css = "li.ipc-inline-list__item") |>
   rvest::html_text() |>
   (function(x) {
