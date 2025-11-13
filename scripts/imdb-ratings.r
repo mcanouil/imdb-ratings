@@ -8,7 +8,7 @@ library(systemfonts)
 # library(ragg)
 library(svglite)
 library(rvest)
-library(chromote)
+library(httr2)
 
 Sys.setlocale("LC_TIME", "en_US.UTF-8")
 
@@ -681,11 +681,14 @@ save_plot_both_modes(
   height = height_count_plot
 )
 
-rvest::read_html_live("https://www.imdb.com/user/ur56341222/ratings") |>
-  (function(x) {
-    Sys.sleep(2L)
-    x
-  })() |>
+httr2::request("https://www.imdb.com/user/ur56341222/ratings") |>
+  httr2::req_headers(
+    "User-Agent" = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "Accept" = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language" = "en-GB,en;q=0.5"
+  ) |>
+  httr2::req_perform() |>
+  httr2::resp_body_html() |>
   rvest::html_elements(css = "li.ipc-inline-list__item") |>
   rvest::html_text() |>
   (function(x) {

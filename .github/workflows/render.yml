@@ -65,7 +65,7 @@ jobs:
             any::svglite
             any::jsonlite
             any::rvest
-            any::chromote
+            any::httr2
 
       - name: Render figures
         shell: bash
