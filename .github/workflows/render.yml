@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
   push:
     branches:
       - main
@@ -65,11 +65,12 @@ jobs:
             any::svglite
             any::jsonlite
             any::rvest
-      
+            any::chromote
+
       - name: Render figures
         shell: bash
         run: Rscript scripts/imdb-ratings.r
-      
+
       - name: Commit
         shell: bash
         env:
@@ -77,14 +78,14 @@ jobs:
         run: |
           git add media/*
           git commit -m "${COMMIT}"
-      
+
       - name: Push changes
         shell: bash
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git push --force origin ${BRANCH}
-      
+
       - name: Create Pull Request
         shell: bash
         env:

@@ -8,6 +8,7 @@ library(systemfonts)
 # library(ragg)
 library(svglite)
 library(rvest)
+library(chromote)
 
 Sys.setlocale("LC_TIME", "en_US.UTF-8")
 
@@ -680,7 +681,7 @@ save_plot_both_modes(
   height = height_count_plot
 )
 
-rvest::read_html("https://www.imdb.com/user/ur56341222/ratings") |>
+rvest::read_html_live("https://www.imdb.com/user/ur56341222/ratings") |>
   rvest::html_elements(css = "li.ipc-inline-list__item") |>
   rvest::html_text() |>
   (function(x) {
