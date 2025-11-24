@@ -18,7 +18,7 @@ jobs:
       BRANCH: ci/render-figures
       COMMIT: "ci: automatic figure rendering"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v2
