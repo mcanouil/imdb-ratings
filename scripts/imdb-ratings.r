@@ -681,19 +681,18 @@ save_plot_both_modes(
   height = height_count_plot
 )
 
-httr2::request("https://www.imdb.com/user/ur56341222/ratings") |>
+httr2::request("https://caching.graphql.imdb.com/") |>
   httr2::req_headers(
     "User-Agent" = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-    "Accept" = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language" = "en-GB,en;q=0.5"
+    "Content-Type" = "application/json"
   ) |>
+  httr2::req_body_json(list(
+    query = "{ userRatings(userId: \"ur56341222\", first: 1) { total } }"
+  )) |>
   httr2::req_perform() |>
-  httr2::resp_body_html() |>
-  rvest::html_elements(css = "li.ipc-inline-list__item") |>
-  rvest::html_text() |>
+  httr2::resp_body_json() |>
   (function(x) {
-    x <- grep(" titles", x, value = TRUE)
-    n <- format(as.numeric(gsub("([0-9]+) .*", "\\1", x)), big.mark = ",")
+    n <- format(x[["data"]][["userRatings"]][["total"]], big.mark = ",")
     sprintf(
       paste(
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="37" height="20" role="img" aria-label="%s">',
