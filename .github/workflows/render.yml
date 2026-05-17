@@ -48,6 +48,14 @@ jobs:
           fi
           git checkout -b "${BRANCH}"
 
+      - name: Install fonts
+        shell: bash
+        run: |
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ttf-mscorefonts-installer fonts-firacode
+          sudo fc-cache -f
+
       - name: Install R
         uses: r-lib/actions/setup-r@v2
 

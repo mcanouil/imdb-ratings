@@ -17,9 +17,28 @@ fig_caption <- NULL # "&copy; Micka&euml;l CANOUIL"
 height_count_plot <- 8
 height_streak_plot <- 13.5
 
+mc_palette <- function(mode = c("dark", "light")) {
+  mode <- match.arg(mode)
+  switch(
+    EXPR = mode,
+    dark = list(
+      ink = "#f5f5f4",
+      paper = "#111827",
+      accent = "#f7f4ec",
+      gold = "#b5830a"
+    ),
+    light = list(
+      ink = "#111827",
+      paper = "#f7f4ec",
+      accent = "#111827",
+      gold = "#b5830a"
+    )
+  )
+}
+
 theme_mcanouil <- function(
   base_size = 11,
-  base_family = "Alegreya Sans",
+  base_family = "Georgia",
   header_family = NULL,
   base_line_size = base_size / 22,
   base_rect_size = base_size / 22,
@@ -27,20 +46,11 @@ theme_mcanouil <- function(
 ) {
   mode <- match.arg(mode, choices = c("dark", "light"))
 
-  # Set ink/paper/accent based on mode
-  switch(
-    EXPR = mode,
-    dark = {
-      ink <- "#fafafa"
-      paper <- "#333333"
-      accent <- "#7f7f7f"
-    },
-    light = {
-      ink <- "#333333"
-      paper <- "#fafafa"
-      accent <- "#7f7f7f"
-    }
-  )
+  pal <- mc_palette(mode)
+  ink <- pal$gold
+  paper <- pal$paper
+  accent <- pal$accent
+  gold <- pal$gold
   systemfonts::require_font(base_family)
 
   half_line <- base_size / 2
@@ -154,21 +164,25 @@ theme_mcanouil <- function(
     axis.minor.ticks.length = ggplot2::rel(0.75),
     axis.title = NULL,
     axis.title.x = ggplot2::element_text(
+      colour = gold,
       margin = ggplot2::margin(t = half_line),
       vjust = 1
     ),
     axis.title.x.top = ggplot2::element_text(
+      colour = gold,
       margin = ggplot2::margin(b = half_line),
       vjust = 0
     ),
     axis.title.x.bottom = NULL,
     axis.title.y = ggplot2::element_text(
+      colour = gold,
       angle = 90,
       margin = ggplot2::margin(r = half_line),
       vjust = 1
     ),
     axis.title.y.left = NULL,
     axis.title.y.right = ggplot2::element_text(
+      colour = gold,
       angle = -90,
       margin = ggplot2::margin(l = half_line),
       vjust = 0
@@ -222,7 +236,7 @@ theme_mcanouil <- function(
     strip.placement.x = NULL,
     strip.placement.y = NULL,
     strip.text = ggplot2::element_text(
-      colour = ink,
+      colour = gold,
       size = ggplot2::rel(0.8),
       margin = ggplot2::margin_auto(0.8 * half_line)
     ),
@@ -234,6 +248,7 @@ theme_mcanouil <- function(
     plot.background = ggplot2::element_rect(colour = paper),
     plot.title = ggplot2::element_text(
       family = header_family,
+      colour = gold,
       size = ggplot2::rel(1.25),
       face = "bold",
       hjust = 0,
@@ -243,6 +258,7 @@ theme_mcanouil <- function(
     plot.title.position = "plot",
     plot.subtitle = ggplot2::element_text(
       family = header_family,
+      colour = gold,
       size = ggplot2::rel(1),
       face = "italic",
       hjust = 0,
@@ -250,6 +266,7 @@ theme_mcanouil <- function(
       margin = ggplot2::margin(b = half_line)
     ),
     plot.caption = ggplot2::element_text(
+      colour = gold,
       size = ggplot2::rel(0.75),
       face = "italic",
       hjust = 1,
@@ -284,7 +301,9 @@ theme_mcanouil <- function(
 
 create_streak_geoms <- function(mode = c("dark", "light")) {
   mode <- match.arg(mode)
-  ink <- if (mode == "dark") "#fafafa" else "#333333"
+  pal <- mc_palette(mode)
+  ink <- pal$ink
+  gold <- pal$gold
   tile_colour <- paste0(ink, "66")
 
   list(
@@ -349,6 +368,7 @@ create_streak_geoms <- function(mode = c("dark", "light")) {
       axis.title.y = ggplot2::element_blank(),
       axis.ticks = ggplot2::element_blank(),
       plot.caption = marquee::element_marquee(
+        colour = gold,
         style = marquee::classic_style(italic = TRUE),
         size = ggplot2::rel(0.90)
       )
@@ -358,18 +378,27 @@ create_streak_geoms <- function(mode = c("dark", "light")) {
 
 set_theme(theme_mcanouil(base_size = 11))
 
-update_theme(
-  plot.title.position = "plot",
-  plot.caption.position = "plot",
-  plot.title = element_marquee(),
-  plot.subtitle = element_marquee(style = classic_style(italic = TRUE)),
-  plot.caption = element_marquee(style = classic_style(italic = TRUE)),
-  axis.title.x = element_marquee(),
-  axis.text.x = element_marquee(),
-  axis.text.x.top = element_marquee(),
-  axis.title.y = element_marquee(),
-  axis.text.y = element_marquee()
-)
+local({
+  pal <- mc_palette("dark")
+  update_theme(
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    plot.title = element_marquee(colour = pal$gold),
+    plot.subtitle = element_marquee(
+      colour = pal$gold,
+      style = classic_style(italic = TRUE)
+    ),
+    plot.caption = element_marquee(
+      colour = pal$gold,
+      style = classic_style(italic = TRUE)
+    ),
+    axis.title.x = element_marquee(colour = pal$gold),
+    axis.text.x = element_marquee(),
+    axis.text.x.top = element_marquee(),
+    axis.title.y = element_marquee(colour = pal$gold),
+    axis.text.y = element_marquee()
+  )
+})
 
 theatres_raw_data <- fread(file = here("data", "theatres.csv"))
 
@@ -440,7 +469,9 @@ all_week_month_breaks <- all_years_streak_data[
 
 create_count_geoms <- function(mode = c("dark", "light")) {
   mode <- match.arg(mode)
-  ink <- if (mode == "dark") "#fafafa" else "#333333"
+  pal <- mc_palette(mode)
+  ink <- pal$ink
+  gold <- pal$gold
   tile_colour <- paste0(ink, "66")
 
   list(
@@ -482,6 +513,7 @@ create_count_geoms <- function(mode = c("dark", "light")) {
       axis.title.y = ggplot2::element_blank(),
       axis.ticks = ggplot2::element_blank(),
       plot.caption = marquee::element_marquee(
+        colour = gold,
         style = marquee::classic_style(italic = TRUE),
         size = ggplot2::rel(0.90)
       )
@@ -491,22 +523,24 @@ create_count_geoms <- function(mode = c("dark", "light")) {
 
 save_plot_both_modes <- function(plot_fn, base_filename, width, height) {
   for (mode in c("dark", "light")) {
-    # Set theme for this mode
+    pal <- mc_palette(mode)
     ggplot2::set_theme(theme_mcanouil(base_size = 11, mode = mode))
     ggplot2::update_theme(
       plot.title.position = "plot",
       plot.caption.position = "plot",
-      plot.title = marquee::element_marquee(),
+      plot.title = marquee::element_marquee(colour = pal$gold),
       plot.subtitle = marquee::element_marquee(
+        colour = pal$gold,
         style = marquee::classic_style(italic = TRUE)
       ),
       plot.caption = marquee::element_marquee(
+        colour = pal$gold,
         style = marquee::classic_style(italic = TRUE)
       ),
-      axis.title.x = marquee::element_marquee(),
+      axis.title.x = marquee::element_marquee(colour = pal$gold),
       axis.text.x = marquee::element_marquee(),
       axis.text.x.top = marquee::element_marquee(),
-      axis.title.y = marquee::element_marquee(),
+      axis.title.y = marquee::element_marquee(colour = pal$gold),
       axis.text.y = marquee::element_marquee()
     )
 
@@ -693,6 +727,7 @@ httr2::request("https://caching.graphql.imdb.com/") |>
   httr2::resp_body_json() |>
   (function(x) {
     n <- format(x[["data"]][["userRatings"]][["total"]], big.mark = ",")
+    pal <- mc_palette("light")
     sprintf(
       paste(
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="37" height="20" role="img" aria-label="%s">',
@@ -702,19 +737,24 @@ httr2::request("https://caching.graphql.imdb.com/") |>
         '</linearGradient>',
         '<clipPath id="r"><rect width="37" height="20" rx="3" fill="#fff"/></clipPath>',
         '<g clip-path="url(#r)">',
-        '<rect width="0" height="20" fill="#009e73"/>',
-        '<rect x="0" width="37" height="20" fill="#009e73"/>',
+        '<rect width="0" height="20" fill="%s"/>',
+        '<rect x="0" width="37" height="20" fill="%s"/>',
         '<rect width="37" height="20" fill="url(#s)"/>',
         '</g>',
-        '<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">',
-        '<text aria-hidden="true" x="185" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="270">%s</text>',
-        '<text x="185" y="140" transform="scale(.1)" fill="#fff" textLength="270">%s</text>',
+        '<g fill="%s" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">',
+        '<text aria-hidden="true" x="185" y="150" fill="%s" fill-opacity=".3" transform="scale(.1)" textLength="270">%s</text>',
+        '<text x="185" y="140" transform="scale(.1)" fill="%s" textLength="270">%s</text>',
         '</g>',
         '</svg>'
       ),
       n,
       n,
+      pal$gold,
+      pal$gold,
+      pal$ink,
+      pal$ink,
       n,
+      pal$ink,
       n
     )
   })() |>
