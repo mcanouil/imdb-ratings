@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { ocrTicket } from "./ocr";
+import { errorMessage } from "./util";
 
 interface Props {
   onResult: (text: string, previewUrl: string) => void;
   onError: (message: string) => void;
 }
 
-function message(e: unknown): string {
-  return e instanceof Error ? e.message : String(e);
+/** OCR a captured image and turn the binarised result into a preview object URL. */
+async function ocrToResult(source: Blob, onProgress: (n: number) => void): Promise<{ text: string; url: string }> {
+  const { text, prepared } = await ocrTicket(source, onProgress);
+  return { text, url: URL.createObjectURL(prepared) };
 }
 
 /** In-app camera (getUserMedia) with a single-shot shutter; falls back to a photo picker. */
@@ -46,7 +49,7 @@ export function CameraCapture({ onResult, onError }: Props) {
     }
   };
 
-  const shutter = () => {
+  const shutter = async () => {
     const video = videoRef.current;
     if (!video || busy) return;
     const w = video.videoWidth;
@@ -63,26 +66,20 @@ export function CameraCapture({ onResult, onError }: Props) {
     setBusy(true);
     setProgress(0);
     onError("");
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          setBusy(false);
-          onError("Could not capture the frame.");
-          return;
-        }
-        ocrTicket(blob, setProgress)
-          .then(({ text, prepared }) => {
-            stop();
-            onResult(text, URL.createObjectURL(prepared));
-          })
-          .catch((e) => {
-            onError(message(e));
-            setBusy(false);
-          });
-      },
-      "image/jpeg",
-      0.95,
-    );
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.95));
+    if (!blob) {
+      onError("Could not capture the frame.");
+      setBusy(false);
+      return;
+    }
+    try {
+      const { text, url } = await ocrToResult(blob, setProgress);
+      stop();
+      onResult(text, url);
+    } catch (e) {
+      onError(errorMessage(e));
+      setBusy(false);
+    }
   };
 
   if (mode === "fallback") return <PhotoCapture onResult={onResult} onError={onError} />;
@@ -151,10 +148,10 @@ function PhotoCapture({ onResult, onError }: Props) {
     setProgress(0);
     onError("");
     try {
-      const { text, prepared } = await ocrTicket(file, setProgress);
-      onResult(text, URL.createObjectURL(prepared));
+      const { text, url } = await ocrToResult(file, setProgress);
+      onResult(text, url);
     } catch (e) {
-      onError(message(e));
+      onError(errorMessage(e));
       setBusy(false);
     }
   };

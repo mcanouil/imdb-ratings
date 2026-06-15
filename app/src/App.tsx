@@ -6,6 +6,7 @@ import { searchImdb, type ImdbSuggestion } from "./imdb";
 import { buildRow, commit, type CommitResult } from "./github";
 import { clearToken, getValidToken, isOwner, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
 import { usePullToRefresh } from "./usePullToRefresh";
+import { errorMessage } from "./util";
 
 type Step = "capture" | "confirm" | "pick" | "review" | "done";
 
@@ -42,26 +43,27 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
+  // Verify a token belongs to the owner, then either unlock or reject (used by both paths).
+  const acceptToken = async (t: string): Promise<void> => {
+    const ok = await isOwner(t).catch(() => false);
+    if (ok) {
+      setToken(t);
+      setStatus("authed");
+    } else {
+      clearToken();
+      setStatus("locked");
+      setError("This account is not authorised.");
+    }
+  };
+
   // On load: restore (and refresh if needed) the persisted session, then verify ownership.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const stored = await getValidToken();
       if (cancelled) return;
-      if (!stored) {
-        setStatus("locked");
-        return;
-      }
-      const ok = await isOwner(stored).catch(() => false);
-      if (cancelled) return;
-      if (ok) {
-        setToken(stored);
-        setStatus("authed");
-      } else {
-        clearToken();
-        setStatus("locked");
-        setError("This account is not authorised.");
-      }
+      if (stored) await acceptToken(stored);
+      else setStatus("locked");
     })();
     return () => {
       cancelled = true;
@@ -76,16 +78,9 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
       setDevice(dev);
       const t = await pollForToken(dev);
       setDevice(null);
-      const ok = await isOwner(t).catch(() => false);
-      if (ok) {
-        setToken(t);
-        setStatus("authed");
-      } else {
-        clearToken();
-        setError("This account is not authorised.");
-      }
+      await acceptToken(t);
     } catch (e) {
-      setError(asMessage(e));
+      setError(errorMessage(e));
       setDevice(null);
     } finally {
       setBusy(false);
@@ -161,6 +156,12 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
     setError("");
   };
 
+  // Release each preview object URL when it is replaced or the scanner unmounts.
+  useEffect(() => {
+    if (!imageUrl) return;
+    return () => URL.revokeObjectURL(imageUrl);
+  }, [imageUrl]);
+
   return (
     <main className="app">
       <header>
@@ -204,7 +205,7 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
               setSuggestions(found);
               setStep("pick");
             } catch (e) {
-              setError(asMessage(e));
+              setError(errorMessage(e));
             }
           }}
         />
@@ -357,7 +358,7 @@ function PickStep({
     try {
       onResearch(await searchImdb(query));
     } catch (e) {
-      onError(asMessage(e));
+      onError(errorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -419,7 +420,7 @@ function ReviewStep({
       const result = await commit(token, row);
       onCommitted(row, result);
     } catch (e) {
-      onError(asMessage(e));
+      onError(errorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -474,6 +475,3 @@ function DoneStep({
   );
 }
 
-function asMessage(e: unknown): string {
-  return e instanceof Error ? e.message : String(e);
-}
