@@ -6,9 +6,11 @@ export interface CommitResult {
   verified: boolean;
 }
 
-/** Build a CSV row "YYYY-MM-DD HH:MM,room,THEATRE,ttID". */
+/** Build a CSV row "YYYY-MM-DD HH:MM,room,THEATRE,ttID" with single-line, comma-free fields. */
 export function buildRow(fields: TicketFields, imdbId: string): string {
-  return `${fields.date} ${fields.time},${fields.room},${fields.theatre},${imdbId}`;
+  const theatre = fields.theatre.replace(/[\r\n,]+/g, " ").trim().toUpperCase();
+  const room = fields.room.replace(/\D/g, "");
+  return `${fields.date} ${fields.time},${room},${theatre},${imdbId}`;
 }
 
 /**
