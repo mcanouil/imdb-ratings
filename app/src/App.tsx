@@ -1,17 +1,124 @@
-import { useState } from "react";
-import { THEATRE_CODES } from "./config";
+import { useEffect, useState, type ReactNode } from "react";
+import { OWNER_LOGIN, REPO_URL, THEATRE_CODES } from "./config";
 import { ocrTicket } from "./ocr";
 import { parseTicket, type TicketFields } from "./parseTicket";
 import { searchImdb, type ImdbSuggestion } from "./imdb";
 import { buildRow, commit, type CommitResult } from "./github";
-import { REPO_URL } from "./config";
-import { clearToken, getStoredToken, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
+import { clearToken, getStoredToken, isOwner, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
 
 type Step = "capture" | "confirm" | "pick" | "review" | "done";
 
 const EMPTY: TicketFields = { theatre: "", room: "", date: "", time: "", title: "" };
 
 export function App() {
+  return <AuthGate>{(token, logout) => <Scanner token={token} onLogout={logout} />}</AuthGate>;
+}
+
+/** Front door: nothing renders until a device-flow login resolves to the repo owner. */
+function AuthGate({ children }: { children: (token: string, logout: () => void) => ReactNode }) {
+  const [token, setToken] = useState<string | null>(getStoredToken());
+  const [status, setStatus] = useState<"checking" | "locked" | "authed">("checking");
+  const [device, setDevice] = useState<DeviceCode | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!token) {
+      setStatus("locked");
+      return;
+    }
+    setStatus("checking");
+    isOwner(token)
+      .then((ok) => {
+        if (cancelled) return;
+        if (ok) {
+          setStatus("authed");
+        } else {
+          clearToken();
+          setToken(null);
+          setStatus("locked");
+          setError("This account is not authorised.");
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        clearToken();
+        setToken(null);
+        setStatus("locked");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const login = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const dev = await startDeviceFlow();
+      setDevice(dev);
+      const t = await pollForToken(dev);
+      setDevice(null);
+      setToken(t); // triggers the owner check above
+    } catch (e) {
+      setError(asMessage(e));
+      setDevice(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const logout = () => {
+    clearToken();
+    setToken(null);
+    setError("");
+  };
+
+  if (status === "authed" && token) return children(token, logout);
+
+  return (
+    <main className="app">
+      <header>
+        <h1>🎟️ Ticket → theatres.csv</h1>
+      </header>
+      <section className="step">
+        {status === "checking" ? (
+          <p>Checking session…</p>
+        ) : (
+          <>
+            <p>Restricted to {OWNER_LOGIN}. Sign in with GitHub to continue.</p>
+            {error && (
+              <p className="error" role="alert">
+                {error}
+              </p>
+            )}
+            {!device && (
+              <button type="button" onClick={login} disabled={busy}>
+                {busy ? "…" : "🔐 Sign in with GitHub"}
+              </button>
+            )}
+            {device && (
+              <div className="device">
+                <p>
+                  Open{" "}
+                  <a href={device.verification_uri} target="_blank" rel="noreferrer">
+                    {device.verification_uri}
+                  </a>{" "}
+                  and enter this code:
+                </p>
+                <p className="user-code">{device.user_code}</p>
+                <p className="waiting">Waiting for authorisation…</p>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+    </main>
+  );
+}
+
+function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
   const [step, setStep] = useState<Step>("capture");
   const [fields, setFields] = useState<TicketFields>(EMPTY);
   const [imageUrl, setImageUrl] = useState("");
@@ -33,7 +140,12 @@ export function App() {
   return (
     <main className="app">
       <header>
-        <h1>🎟️ Ticket → theatres.csv</h1>
+        <div className="topbar">
+          <h1>🎟️ Ticket → theatres.csv</h1>
+          <button type="button" className="link" onClick={onLogout}>
+            Logout
+          </button>
+        </div>
         <Stepper step={step} />
       </header>
 
@@ -90,6 +202,7 @@ export function App() {
 
       {step === "review" && (
         <ReviewStep
+          token={token}
           row={buildRow(fields, imdbId)}
           onBack={() => setStep("pick")}
           onError={setError}
@@ -296,39 +409,21 @@ function PickStep({
 }
 
 function ReviewStep({
+  token,
   row,
   onCommitted,
   onError,
   onBack,
 }: {
+  token: string;
   row: string;
   onCommitted: (row: string, result: CommitResult) => void;
   onError: (m: string) => void;
   onBack: () => void;
 }) {
-  const [token, setToken] = useState(getStoredToken());
-  const [device, setDevice] = useState<DeviceCode | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const login = async () => {
-    setBusy(true);
-    onError("");
-    try {
-      const dev = await startDeviceFlow();
-      setDevice(dev);
-      const t = await pollForToken(dev);
-      setToken(t);
-      setDevice(null);
-    } catch (e) {
-      onError(asMessage(e));
-      setDevice(null);
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const doCommit = async () => {
-    if (!token) return;
     setBusy(true);
     onError("");
     try {
@@ -345,47 +440,14 @@ function ReviewStep({
     <section className="step">
       <p>New row to commit:</p>
       <pre className="row">{row}</pre>
-
-      {!token && !device && (
-        <button type="button" onClick={login} disabled={busy}>
-          🔐 Sign in with GitHub
+      <div className="actions">
+        <button type="button" className="secondary" onClick={onBack}>
+          ← Back
         </button>
-      )}
-
-      {device && (
-        <div className="device">
-          <p>
-            Open{" "}
-            <a href={device.verification_uri} target="_blank" rel="noreferrer">
-              {device.verification_uri}
-            </a>{" "}
-            and enter this code:
-          </p>
-          <p className="user-code">{device.user_code}</p>
-          <p className="waiting">Waiting for authorisation…</p>
-        </div>
-      )}
-
-      {token && (
-        <div className="actions">
-          <button type="button" className="secondary" onClick={onBack}>
-            ← Back
-          </button>
-          <button type="button" onClick={doCommit} disabled={busy}>
-            {busy ? "Committing…" : "✅ Commit to theatres.csv"}
-          </button>
-          <button
-            type="button"
-            className="link"
-            onClick={() => {
-              clearToken();
-              setToken(null);
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      )}
+        <button type="button" onClick={doCommit} disabled={busy}>
+          {busy ? "Committing…" : "✅ Commit to theatres.csv"}
+        </button>
+      </div>
     </section>
   );
 }

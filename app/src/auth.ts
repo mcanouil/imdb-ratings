@@ -1,6 +1,22 @@
-import { GATEWAY_BASE } from "./config";
+import { GATEWAY_BASE, OWNER_LOGIN } from "./config";
 
 const TOKEN_KEY = "gh_token";
+
+/** Resolve the login behind a token, or null if invalid. api.github.com allows CORS (`*`). */
+export async function fetchLogin(token: string): Promise<string | null> {
+  const res = await fetch("https://api.github.com/user", {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+  });
+  if (!res.ok) return null;
+  const user = (await res.json()) as { login?: string };
+  return user.login ?? null;
+}
+
+/** True only when the token belongs to the repo owner. */
+export async function isOwner(token: string): Promise<boolean> {
+  const login = await fetchLogin(token);
+  return login?.toLowerCase() === OWNER_LOGIN;
+}
 
 export interface DeviceCode {
   device_code: string;
