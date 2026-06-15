@@ -3,7 +3,8 @@ import { THEATRE_CODES } from "./config";
 import { ocrTicket } from "./ocr";
 import { parseTicket, type TicketFields } from "./parseTicket";
 import { searchImdb, type ImdbSuggestion } from "./imdb";
-import { buildRow, commit, getCsv, insertRow } from "./github";
+import { buildRow, commit, type CommitResult } from "./github";
+import { REPO_URL } from "./config";
 import { clearToken, getStoredToken, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
 
 type Step = "capture" | "confirm" | "pick" | "review" | "done";
@@ -16,7 +17,7 @@ export function App() {
   const [imageUrl, setImageUrl] = useState("");
   const [suggestions, setSuggestions] = useState<ImdbSuggestion[]>([]);
   const [imdbId, setImdbId] = useState("");
-  const [committedRow, setCommittedRow] = useState("");
+  const [committed, setCommitted] = useState<{ row: string; result: CommitResult } | null>(null);
   const [error, setError] = useState("");
 
   const reset = () => {
@@ -25,7 +26,7 @@ export function App() {
     setImageUrl("");
     setSuggestions([]);
     setImdbId("");
-    setCommittedRow("");
+    setCommitted(null);
     setError("");
   };
 
@@ -92,14 +93,14 @@ export function App() {
           row={buildRow(fields, imdbId)}
           onBack={() => setStep("pick")}
           onError={setError}
-          onCommitted={(row) => {
-            setCommittedRow(row);
+          onCommitted={(row, result) => {
+            setCommitted({ row, result });
             setStep("done");
           }}
         />
       )}
 
-      {step === "done" && <DoneStep row={committedRow} onReset={reset} />}
+      {step === "done" && committed && <DoneStep row={committed.row} result={committed.result} onReset={reset} />}
     </main>
   );
 }
@@ -301,7 +302,7 @@ function ReviewStep({
   onBack,
 }: {
   row: string;
-  onCommitted: (row: string) => void;
+  onCommitted: (row: string, result: CommitResult) => void;
   onError: (m: string) => void;
   onBack: () => void;
 }) {
@@ -331,10 +332,8 @@ function ReviewStep({
     setBusy(true);
     onError("");
     try {
-      const csv = await getCsv(token);
-      const updated = insertRow(csv.content, row);
-      await commit(token, updated, csv.sha);
-      onCommitted(row);
+      const result = await commit(token, row);
+      onCommitted(row, result);
     } catch (e) {
       onError(asMessage(e));
     } finally {
@@ -391,14 +390,15 @@ function ReviewStep({
   );
 }
 
-function DoneStep({ row, onReset }: { row: string; onReset: () => void }) {
+function DoneStep({ row, result, onReset }: { row: string; result: CommitResult; onReset: () => void }) {
   return (
     <section className="step done">
       <p>✅ Committed. The render workflow will refresh the figures shortly.</p>
       <pre className="row">{row}</pre>
+      <p>{result.verified ? "🔒 Signed commit (Verified)." : "⚠️ Commit not verified."}</p>
       <p>
-        <a href="https://github.com/mcanouil/imdb-ratings/commits/main" target="_blank" rel="noreferrer">
-          View commits
+        <a href={result.html_url ?? `${REPO_URL}/commits/main`} target="_blank" rel="noreferrer">
+          View commit
         </a>
       </p>
       <button type="button" onClick={onReset}>
