@@ -1,18 +1,18 @@
 import { GATEWAY_BASE, OWNER_LOGIN } from "./config";
 
-// Persisted across app close/open so the session survives reopening.
+// Persisted across app close/open so the session survives reopening, but only the short-lived
+// access token is stored (no long-lived refresh token): reopening within the token's lifetime
+// skips login; once it expires (~8h with expiring user tokens) the user signs in again.
 const SESSION_KEY = "gh_session";
 const EXPIRY_SKEW_MS = 60_000;
 
 interface Session {
   access_token: string;
-  refresh_token?: string;
   expires_at?: number; // epoch ms; absent when tokens do not expire
 }
 
 interface TokenResponse {
   access_token?: string;
-  refresh_token?: string;
   expires_in?: number;
   error?: string;
 }
@@ -30,7 +30,6 @@ function readSession(): Session | null {
 function writeSession(data: TokenResponse): string {
   const session: Session = {
     access_token: data.access_token!,
-    refresh_token: data.refresh_token,
     expires_at: data.expires_in ? Date.now() + data.expires_in * 1000 : undefined,
   };
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -41,23 +40,16 @@ export function clearToken(): void {
   localStorage.removeItem(SESSION_KEY);
 }
 
-async function refreshSession(session: Session): Promise<string | null> {
-  if (!session.refresh_token) return null;
-  const res = await fetch(`${GATEWAY_BASE}/github/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ grant_type: "refresh_token", refresh_token: session.refresh_token }),
-  });
-  const data = (await res.json()) as TokenResponse;
-  return data.access_token ? writeSession(data) : null;
-}
-
-/** Return a usable access token, refreshing first if it has expired. Null when logged out / unrefreshable. */
+/** Return the stored access token if still valid; clear and return null once it has expired. */
 export async function getValidToken(): Promise<string | null> {
   const session = readSession();
   if (!session) return null;
   const expired = session.expires_at !== undefined && Date.now() > session.expires_at - EXPIRY_SKEW_MS;
-  return expired ? refreshSession(session) : session.access_token;
+  if (expired) {
+    clearToken();
+    return null;
+  }
+  return session.access_token;
 }
 
 /** Resolve the login behind a token, or null if invalid. api.github.com allows CORS (`*`). */
