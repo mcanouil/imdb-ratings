@@ -133,10 +133,9 @@ function CaptureStep({ onResult, onError }: { onResult: (text: string, url: stri
     setBusy(true);
     setProgress(0);
     onError("");
-    const url = URL.createObjectURL(file);
     try {
-      const text = await ocrTicket(file, setProgress);
-      onResult(text, url);
+      const { text, prepared } = await ocrTicket(file, setProgress);
+      onResult(text, URL.createObjectURL(prepared));
     } catch (e) {
       onError(asMessage(e));
       setBusy(false);
@@ -181,7 +180,12 @@ function ConfirmStep({
 
   return (
     <section className="step">
-      {imageUrl && <img className="preview" src={imageUrl} alt="Scanned ticket" />}
+      {imageUrl && (
+        <figure className="preview-figure">
+          <img className="preview" src={imageUrl} alt="Binarised ticket used for OCR" />
+          <figcaption>Binarised image fed to OCR. Correct any misread field below.</figcaption>
+        </figure>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();

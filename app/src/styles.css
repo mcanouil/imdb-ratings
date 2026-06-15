@@ -143,10 +143,21 @@ button.link {
   display: none;
 }
 
+.preview-figure {
+  margin: 0 0 1rem;
+}
+
 .preview {
   width: 100%;
   border-radius: 0.5rem;
-  margin-bottom: 1rem;
+  display: block;
+}
+
+.preview-figure figcaption {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
 }
 
 .research {
