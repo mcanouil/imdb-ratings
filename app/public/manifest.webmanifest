@@ -1,0 +1,23 @@
+{
+  "name": "Ticket to theatres.csv",
+  "short_name": "theatres.csv",
+  "start_url": "/imdb-ratings/",
+  "scope": "/imdb-ratings/",
+  "display": "standalone",
+  "background_color": "#0b0e11",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    {
+      "src": "/imdb-ratings/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/imdb-ratings/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
