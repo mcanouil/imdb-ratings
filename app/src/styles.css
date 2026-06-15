@@ -89,6 +89,14 @@ h1 {
   flex-direction: column;
 }
 
+/* Login screen: centre the prompt + sign-in button in the viewport. */
+.gate {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+}
+
 label {
   display: block;
   margin-bottom: 0.85rem;

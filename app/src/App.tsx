@@ -101,7 +101,7 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
       <header>
         <h1>🎟️ Ticket → theatres.csv</h1>
       </header>
-      <section className="step">
+      <section className="step gate">
         {status === "checking" ? (
           <p>Checking session…</p>
         ) : (
