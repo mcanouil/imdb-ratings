@@ -1,11 +1,14 @@
 :root {
-  --bg: #1a1a1a;
-  --panel: #242424;
-  --fg: #ececec;
-  --muted: #9a9a9a;
-  --accent: #d4a843;
-  --border: #3a3a3a;
-  --error: #e06c5b;
+  /* UGC brand (cyan/turquoise) in a dark variant. */
+  --bg: #0b0e11;
+  --panel: #14181c;
+  --border: #262c33;
+  --fg: #ecf1f4;
+  --muted: #8a98a3;
+  --accent: #00b4e4;
+  --accent-bright: #2bd0f0;
+  --on-accent: #04222b;
+  --error: #e5534b;
   color-scheme: dark;
 }
 
@@ -13,8 +16,10 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  min-height: 100dvh;
   background: var(--bg);
   color: var(--fg);
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -23,47 +28,20 @@ body {
   overscroll-behavior-y: contain;
 }
 
-.ptr {
-  position: fixed;
-  top: -2.5rem;
-  left: 0;
-  right: 0;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--muted);
-  z-index: 10;
-  pointer-events: none;
-}
-
-.ptr-spinner {
-  font-size: 1.1rem;
-  color: var(--accent);
-  display: inline-block;
-}
-
-.ptr-spinner.spin {
-  animation: ptr-rotate 0.8s linear infinite;
-}
-
-@keyframes ptr-rotate {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .app {
-  max-width: 32rem;
+  width: 100%;
+  max-width: 34rem;
   margin: 0 auto;
-  padding: 1rem 1rem calc(2rem + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: calc(0.75rem + env(safe-area-inset-top)) calc(0.9rem + env(safe-area-inset-right))
+    calc(0.9rem + env(safe-area-inset-bottom)) calc(0.9rem + env(safe-area-inset-left));
 }
 
 h1 {
-  font-size: 1.3rem;
-  margin: 0.5rem 0 1rem;
+  font-size: 1.25rem;
+  margin: 0.25rem 0 0.9rem;
 }
 
 .topbar {
@@ -78,8 +56,8 @@ h1 {
   gap: 0.25rem;
   list-style: none;
   padding: 0;
-  margin: 0 0 1.25rem;
-  font-size: 0.75rem;
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
 }
 
 .stepper li {
@@ -93,7 +71,7 @@ h1 {
 
 .stepper li.active {
   background: var(--accent);
-  color: #1a1a1a;
+  color: var(--on-accent);
   font-weight: 600;
 }
 
@@ -102,10 +80,13 @@ h1 {
 }
 
 .step {
+  flex: 1;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
 label {
@@ -119,23 +100,40 @@ input {
   display: block;
   width: 100%;
   margin-top: 0.25rem;
-  padding: 0.6rem;
+  padding: 0.7rem;
   font-size: 1rem;
+  min-height: 44px;
   background: var(--bg);
   color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 0.4rem;
 }
 
-button {
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button,
+.button {
   font-size: 1rem;
-  padding: 0.6rem 1rem;
+  padding: 0.7rem 1rem;
+  min-height: 44px;
   border: none;
   border-radius: 0.4rem;
   background: var(--accent);
-  color: #1a1a1a;
+  color: var(--on-accent);
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button:active,
+.button:active {
+  background: var(--accent-bright);
 }
 
 button:disabled {
@@ -154,6 +152,8 @@ button.link {
   color: var(--muted);
   font-weight: 400;
   text-decoration: underline;
+  min-height: auto;
+  padding: 0.4rem 0.2rem;
 }
 
 .actions {
@@ -161,11 +161,13 @@ button.link {
   gap: 0.5rem;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
 }
 
 .actions button[type="submit"],
-.actions button:not(.secondary):not(.link) {
+.actions button:not(.secondary):not(.link),
+.actions .button {
   margin-left: auto;
 }
 
@@ -173,7 +175,7 @@ button.link {
   display: block;
   text-align: center;
   background: var(--accent);
-  color: #1a1a1a;
+  color: var(--on-accent);
   font-weight: 600;
   padding: 1.5rem;
   border-radius: 0.5rem;
@@ -182,6 +184,81 @@ button.link {
 
 .capture-button input {
   display: none;
+}
+
+/* Embedded camera */
+.camera {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 20;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(86vw, 30rem);
+  aspect-ratio: 8 / 5;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--accent);
+  border-radius: 0.6rem;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.45);
+}
+
+.camera-hint {
+  position: absolute;
+  top: calc(1rem + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 0.85rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.camera-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem calc(1.25rem + env(safe-area-inset-right)) calc(1.25rem + env(safe-area-inset-bottom))
+    calc(1.25rem + env(safe-area-inset-left));
+}
+
+.camera-bar .link {
+  color: #fff;
+}
+
+.camera-status {
+  flex: 1;
+  text-align: center;
+  color: #fff;
+  font-weight: 600;
+}
+
+.shutter {
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--accent);
+  padding: 0;
+  margin: 0 auto;
+}
+
+.shutter:active {
+  background: var(--accent-bright);
 }
 
 .preview-figure {
@@ -218,6 +295,7 @@ button.link {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-y: auto;
 }
 
 .results button {
@@ -230,6 +308,8 @@ button.link {
   border: 1px solid var(--border);
   padding: 0.5rem;
   align-items: center;
+  justify-content: flex-start;
+  font-weight: 400;
 }
 
 .results img,
@@ -283,7 +363,7 @@ button.link {
 }
 
 .error {
-  background: rgba(224, 108, 91, 0.15);
+  background: rgba(229, 83, 75, 0.15);
   border: 1px solid var(--error);
   color: var(--error);
   padding: 0.6rem 0.75rem;
@@ -292,4 +372,36 @@ button.link {
 
 a {
   color: var(--accent);
+}
+
+.ptr {
+  position: fixed;
+  top: -2.5rem;
+  left: 0;
+  right: 0;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ptr-spinner {
+  font-size: 1.1rem;
+  color: var(--accent);
+  display: inline-block;
+}
+
+.ptr-spinner.spin {
+  animation: ptr-rotate 0.8s linear infinite;
+}
+
+@keyframes ptr-rotate {
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -1,10 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { OWNER_LOGIN, REPO_URL, THEATRE_CODES } from "./config";
-import { ocrTicket } from "./ocr";
+import { CameraCapture } from "./CameraCapture";
 import { parseTicket, type TicketFields } from "./parseTicket";
 import { searchImdb, type ImdbSuggestion } from "./imdb";
 import { buildRow, commit, type CommitResult } from "./github";
-import { clearToken, getStoredToken, isOwner, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
+import { clearToken, getValidToken, isOwner, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
 import { usePullToRefresh } from "./usePullToRefresh";
 
 type Step = "capture" | "confirm" | "pick" | "review" | "done";
@@ -36,41 +36,37 @@ function PullIndicator({ distance, threshold, refreshing }: { distance: number; 
 
 /** Front door: nothing renders until a device-flow login resolves to the repo owner. */
 function AuthGate({ children }: { children: (token: string, logout: () => void) => ReactNode }) {
-  const [token, setToken] = useState<string | null>(getStoredToken());
+  const [token, setToken] = useState<string | null>(null);
   const [status, setStatus] = useState<"checking" | "locked" | "authed">("checking");
   const [device, setDevice] = useState<DeviceCode | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
+  // On load: restore (and refresh if needed) the persisted session, then verify ownership.
   useEffect(() => {
     let cancelled = false;
-    if (!token) {
-      setStatus("locked");
-      return;
-    }
-    setStatus("checking");
-    isOwner(token)
-      .then((ok) => {
-        if (cancelled) return;
-        if (ok) {
-          setStatus("authed");
-        } else {
-          clearToken();
-          setToken(null);
-          setStatus("locked");
-          setError("This account is not authorised.");
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        clearToken();
-        setToken(null);
+    (async () => {
+      const stored = await getValidToken();
+      if (cancelled) return;
+      if (!stored) {
         setStatus("locked");
-      });
+        return;
+      }
+      const ok = await isOwner(stored).catch(() => false);
+      if (cancelled) return;
+      if (ok) {
+        setToken(stored);
+        setStatus("authed");
+      } else {
+        clearToken();
+        setStatus("locked");
+        setError("This account is not authorised.");
+      }
+    })();
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, []);
 
   const login = async () => {
     setBusy(true);
@@ -80,7 +76,14 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
       setDevice(dev);
       const t = await pollForToken(dev);
       setDevice(null);
-      setToken(t); // triggers the owner check above
+      const ok = await isOwner(t).catch(() => false);
+      if (ok) {
+        setToken(t);
+        setStatus("authed");
+      } else {
+        clearToken();
+        setError("This account is not authorised.");
+      }
     } catch (e) {
       setError(asMessage(e));
       setDevice(null);
@@ -92,6 +95,7 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
   const logout = () => {
     clearToken();
     setToken(null);
+    setStatus("locked");
     setError("");
   };
 
@@ -176,7 +180,7 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
       )}
 
       {step === "capture" && (
-        <CaptureStep
+        <CameraCapture
           onError={setError}
           onResult={(text, url) => {
             setFields(parseTicket(text));
@@ -233,7 +237,9 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
         />
       )}
 
-      {step === "done" && committed && <DoneStep row={committed.row} result={committed.result} onReset={reset} />}
+      {step === "done" && committed && (
+        <DoneStep row={committed.row} result={committed.result} imdbId={imdbId} onReset={reset} />
+      )}
     </main>
   );
 }
@@ -256,43 +262,6 @@ function Stepper({ step }: { step: Step }) {
         </li>
       ))}
     </ol>
-  );
-}
-
-function CaptureStep({ onResult, onError }: { onResult: (text: string, url: string) => void; onError: (m: string) => void }) {
-  const [busy, setBusy] = useState(false);
-  const [progress, setProgress] = useState(0);
-
-  const handleFile = async (file: File) => {
-    setBusy(true);
-    setProgress(0);
-    onError("");
-    try {
-      const { text, prepared } = await ocrTicket(file, setProgress);
-      onResult(text, URL.createObjectURL(prepared));
-    } catch (e) {
-      onError(asMessage(e));
-      setBusy(false);
-    }
-  };
-
-  return (
-    <section className="step">
-      <p>Photograph the cinema ticket, or pick an existing photo. Fields are extracted then you confirm.</p>
-      <label className="capture-button">
-        {busy ? `Reading… ${Math.round(progress * 100)}%` : "📷 Scan ticket"}
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          disabled={busy}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void handleFile(file);
-          }}
-        />
-      </label>
-    </section>
   );
 }
 
@@ -472,20 +441,35 @@ function ReviewStep({
   );
 }
 
-function DoneStep({ row, result, onReset }: { row: string; result: CommitResult; onReset: () => void }) {
+function DoneStep({
+  row,
+  result,
+  imdbId,
+  onReset,
+}: {
+  row: string;
+  result: CommitResult;
+  imdbId: string;
+  onReset: () => void;
+}) {
   return (
     <section className="step done">
       <p>✅ Committed. The render workflow will refresh the figures shortly.</p>
       <pre className="row">{row}</pre>
       <p>{result.verified ? "🔒 Signed commit (Verified)." : "⚠️ Commit not verified."}</p>
+      <div className="actions">
+        <a className="button" href={`https://www.imdb.com/title/${imdbId}/`} target="_blank" rel="noreferrer">
+          ★ Rate on IMDb
+        </a>
+        <button type="button" onClick={onReset}>
+          Scan another
+        </button>
+      </div>
       <p>
         <a href={result.html_url ?? `${REPO_URL}/commits/main`} target="_blank" rel="noreferrer">
           View commit
         </a>
       </p>
-      <button type="button" onClick={onReset}>
-        Scan another
-      </button>
     </section>
   );
 }
