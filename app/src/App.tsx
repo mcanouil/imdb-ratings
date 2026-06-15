@@ -5,13 +5,33 @@ import { parseTicket, type TicketFields } from "./parseTicket";
 import { searchImdb, type ImdbSuggestion } from "./imdb";
 import { buildRow, commit, type CommitResult } from "./github";
 import { clearToken, getStoredToken, isOwner, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
+import { usePullToRefresh } from "./usePullToRefresh";
 
 type Step = "capture" | "confirm" | "pick" | "review" | "done";
 
 const EMPTY: TicketFields = { theatre: "", room: "", date: "", time: "", title: "" };
 
 export function App() {
-  return <AuthGate>{(token, logout) => <Scanner token={token} onLogout={logout} />}</AuthGate>;
+  const { distance, threshold, refreshing } = usePullToRefresh();
+  return (
+    <>
+      <PullIndicator distance={distance} threshold={threshold} refreshing={refreshing} />
+      <AuthGate>{(token, logout) => <Scanner token={token} onLogout={logout} />}</AuthGate>
+    </>
+  );
+}
+
+function PullIndicator({ distance, threshold, refreshing }: { distance: number; threshold: number; refreshing: boolean }) {
+  if (distance === 0 && !refreshing) return null;
+  const ready = refreshing || distance >= threshold;
+  return (
+    <div className="ptr" style={{ transform: `translateY(${refreshing ? threshold : distance}px)` }} aria-hidden="true">
+      <span className={`ptr-spinner${refreshing ? " spin" : ""}`} style={{ transform: `rotate(${distance * 3}deg)` }}>
+        ↻
+      </span>
+      <span className="ptr-label">{refreshing ? "Refreshing…" : ready ? "Release to refresh" : "Pull to refresh"}</span>
+    </div>
+  );
 }
 
 /** Front door: nothing renders until a device-flow login resolves to the repo owner. */

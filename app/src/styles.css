@@ -19,6 +19,40 @@ body {
   color: var(--fg);
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   line-height: 1.45;
+  /* let the custom pull-to-refresh own the top overscroll */
+  overscroll-behavior-y: contain;
+}
+
+.ptr {
+  position: fixed;
+  top: -2.5rem;
+  left: 0;
+  right: 0;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ptr-spinner {
+  font-size: 1.1rem;
+  color: var(--accent);
+  display: inline-block;
+}
+
+.ptr-spinner.spin {
+  animation: ptr-rotate 0.8s linear infinite;
+}
+
+@keyframes ptr-rotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .app {
