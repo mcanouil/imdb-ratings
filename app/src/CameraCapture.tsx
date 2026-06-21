@@ -17,7 +17,7 @@ async function ocrToResult(source: Blob, onProgress: (n: number) => void): Promi
 export function CameraCapture({ onResult, onError }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [mode, setMode] = useState<"prompt" | "live" | "fallback">("prompt");
+  const [mode, setMode] = useState<"starting" | "live" | "fallback">("starting");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -26,18 +26,9 @@ export function CameraCapture({ onResult, onError }: Props) {
     streamRef.current = null;
   };
 
-  // Release the camera if the component unmounts mid-session.
-  useEffect(() => stop, []);
-
-  useEffect(() => {
-    if (mode === "live" && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-      void videoRef.current.play().catch(() => undefined);
-    }
-  }, [mode]);
-
   const start = async () => {
     onError("");
+    setMode("starting");
     try {
       streamRef.current = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
@@ -48,6 +39,19 @@ export function CameraCapture({ onResult, onError }: Props) {
       setMode("fallback");
     }
   };
+
+  // Open the camera as soon as the step appears; release it on unmount.
+  useEffect(() => {
+    void start();
+    return stop;
+  }, []);
+
+  useEffect(() => {
+    if (mode === "live" && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      void videoRef.current.play().catch(() => undefined);
+    }
+  }, [mode]);
 
   const shutter = async () => {
     const video = videoRef.current;
@@ -82,20 +86,13 @@ export function CameraCapture({ onResult, onError }: Props) {
     }
   };
 
-  if (mode === "fallback") return <PhotoCapture onResult={onResult} onError={onError} />;
+  if (mode === "fallback")
+    return <PhotoCapture onResult={onResult} onError={onError} onUseCamera={() => void start()} />;
 
-  if (mode === "prompt") {
+  if (mode === "starting") {
     return (
       <section className="step">
-        <p>Scan the ticket with the camera, or use an existing photo. Fields are extracted then you confirm.</p>
-        <div className="actions">
-          <button type="button" onClick={start}>
-            📷 Enable camera
-          </button>
-          <button type="button" className="link" onClick={() => setMode("fallback")}>
-            Use a photo instead
-          </button>
-        </div>
+        <p>Starting camera…</p>
       </section>
     );
   }
@@ -110,16 +107,6 @@ export function CameraCapture({ onResult, onError }: Props) {
           <span className="camera-status">Reading… {Math.round(progress * 100)}%</span>
         ) : (
           <>
-            <button
-              type="button"
-              className="link"
-              onClick={() => {
-                stop();
-                setMode("prompt");
-              }}
-            >
-              Cancel
-            </button>
             <button type="button" className="shutter" onClick={shutter} aria-label="Capture ticket" />
             <button
               type="button"
@@ -139,7 +126,7 @@ export function CameraCapture({ onResult, onError }: Props) {
 }
 
 /** Fallback when getUserMedia is unavailable/denied: the OS photo picker. */
-function PhotoCapture({ onResult, onError }: Props) {
+function PhotoCapture({ onResult, onError, onUseCamera }: Props & { onUseCamera?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -172,6 +159,11 @@ function PhotoCapture({ onResult, onError }: Props) {
           }}
         />
       </label>
+      {onUseCamera && (
+        <button type="button" className="link" onClick={onUseCamera} disabled={busy}>
+          Use camera instead
+        </button>
+      )}
     </section>
   );
 }
