@@ -73,7 +73,7 @@ body {
   width: 100%;
   max-width: 34rem;
   margin: 0 auto;
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -100,6 +100,7 @@ body {
 
 .app-main {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -512,7 +513,6 @@ button.link:hover:not(:disabled) {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  overflow-y: auto;
 }
 
 .results button {

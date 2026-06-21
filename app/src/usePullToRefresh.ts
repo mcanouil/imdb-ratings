@@ -17,7 +17,11 @@ export function usePullToRefresh() {
 
   useEffect(() => {
     const onStart = (e: TouchEvent) => {
-      startY.current = window.scrollY <= 0 && e.touches.length === 1 ? e.touches[0].clientY : null;
+      // The scroll viewport is .app-main (the shell is a fixed-height flex column);
+      // fall back to the window for screens without it, such as the auth gate.
+      const scroller = document.querySelector(".app-main");
+      const atTop = scroller ? scroller.scrollTop <= 0 : window.scrollY <= 0;
+      startY.current = atTop && e.touches.length === 1 ? e.touches[0].clientY : null;
     };
 
     const onMove = (e: TouchEvent) => {
