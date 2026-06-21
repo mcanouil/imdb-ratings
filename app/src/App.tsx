@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { OWNER_LOGIN, REPO_URL, THEATRE_CODES } from "./config";
 import { CameraCapture } from "./CameraCapture";
 import { parseTicket, type TicketFields } from "./parseTicket";
@@ -148,6 +148,7 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
   const [imdbId, setImdbId] = useState("");
   const [committed, setCommitted] = useState<{ row: string; result: CommitResult } | null>(null);
   const [error, setError] = useState("");
+  const mainRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
     setStep("capture");
@@ -165,6 +166,11 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
     return () => URL.revokeObjectURL(imageUrl);
   }, [imageUrl]);
 
+  // Land at the top of the page whenever the step changes.
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0);
+  }, [step]);
+
   return (
     <main className="app">
       <header className="app-header">
@@ -177,7 +183,7 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
         <Stepper step={step} />
       </header>
 
-      <div className="app-main">
+      <div className="app-main" ref={mainRef}>
         {error && (
           <p className="error" role="alert">
             {error}
