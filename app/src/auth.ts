@@ -1,4 +1,5 @@
 import { GATEWAY_BASE, OWNER_LOGIN } from "./config";
+import { fetchOrThrow } from "./util";
 
 // Persisted across app close/open so the session survives reopening, but only the short-lived
 // access token is stored (no long-lived refresh token): reopening within the token's lifetime
@@ -54,7 +55,7 @@ export async function getValidToken(): Promise<string | null> {
 
 /** Resolve the login behind a token, or null if invalid. api.github.com allows CORS (`*`). */
 export async function fetchLogin(token: string): Promise<string | null> {
-  const res = await fetch("https://api.github.com/user", {
+  const res = await fetchOrThrow("https://api.github.com/user", {
     headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
   });
   if (!res.ok) return null;
@@ -77,7 +78,7 @@ export interface DeviceCode {
 }
 
 export async function startDeviceFlow(): Promise<DeviceCode> {
-  const res = await fetch(`${GATEWAY_BASE}/github/device/code`, {
+  const res = await fetchOrThrow(`${GATEWAY_BASE}/github/device/code`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -94,7 +95,7 @@ export async function pollForToken(device: DeviceCode): Promise<string> {
 
   while (Date.now() < deadline) {
     await sleep(intervalMs);
-    const res = await fetch(`${GATEWAY_BASE}/github/token`, {
+    const res = await fetchOrThrow(`${GATEWAY_BASE}/github/token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ device_code: device.device_code }),

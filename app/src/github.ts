@@ -1,5 +1,6 @@
 import { GATEWAY_BASE } from "./config";
 import type { TicketFields } from "./parseTicket";
+import { fetchOrThrow } from "./util";
 
 export interface CommitResult {
   html_url: string | null;
@@ -19,7 +20,7 @@ export function buildRow(fields: TicketFields, imdbId: string): string {
  * device-flow token is sent only as an identity gate.
  */
 export async function commit(userToken: string, row: string): Promise<CommitResult> {
-  const res = await fetch(`${GATEWAY_BASE}/github/commit`, {
+  const res = await fetchOrThrow(`${GATEWAY_BASE}/github/commit`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${userToken}` },
     body: JSON.stringify({ row }),
