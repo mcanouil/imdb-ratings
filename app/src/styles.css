@@ -117,6 +117,16 @@ input {
   border-radius: 0.4rem;
 }
 
+/* iOS native date/time controls carry an intrinsic min-width plus native chrome
+   that ignores width:100% and spills past the form box. Strip the native styling
+   so they honour the container width. */
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+}
+
 input:focus {
   outline: none;
   border-color: var(--accent);

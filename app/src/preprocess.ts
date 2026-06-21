@@ -31,8 +31,21 @@ function otsuThreshold(histogram: number[], total: number): number {
   return threshold;
 }
 
-/** Grayscale + Otsu-threshold the captured ticket; returns a PNG blob for OCR. */
-export async function preprocessTicket(image: Blob): Promise<Blob> {
+export interface PreparedTicket {
+  /** Binarised image (dark text on light) for OCR + preview. */
+  binarised: Blob;
+  /** Inverted binarised image, so knockout white-on-black text (e.g. a solid
+   *  room box) becomes dark-on-light and readable on a second OCR pass. */
+  inverted: Blob;
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, fallback: Blob): Promise<Blob> {
+  return new Promise<Blob>((resolve) => canvas.toBlob((blob) => resolve(blob ?? fallback), "image/png"));
+}
+
+/** Grayscale + Otsu-threshold the captured ticket; returns the binarised image
+ *  and its inversion as PNG blobs for OCR. */
+export async function preprocessTicket(image: Blob): Promise<PreparedTicket> {
   const bitmap = await createImageBitmap(image);
   const maxDim = Math.max(bitmap.width, bitmap.height);
   let scale = 1;
@@ -45,7 +58,7 @@ export async function preprocessTicket(image: Blob): Promise<Blob> {
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
-  if (!ctx) return image;
+  if (!ctx) return { binarised: image, inverted: image };
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
@@ -68,6 +81,15 @@ export async function preprocessTicket(image: Blob): Promise<Blob> {
     pixels[i] = pixels[i + 1] = pixels[i + 2] = value;
   }
   ctx.putImageData(data, 0, 0);
+  const binarised = await canvasToBlob(canvas, image);
 
-  return new Promise<Blob>((resolve) => canvas.toBlob((blob) => resolve(blob ?? image), "image/png"));
+  // Invert in place so the second pass can read knockout (white-on-black) text.
+  for (let i = 0; i < pixels.length; i += 4) {
+    const value = 255 - pixels[i];
+    pixels[i] = pixels[i + 1] = pixels[i + 2] = value;
+  }
+  ctx.putImageData(data, 0, 0);
+  const inverted = await canvasToBlob(canvas, image);
+
+  return { binarised, inverted };
 }

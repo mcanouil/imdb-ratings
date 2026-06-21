@@ -8,10 +8,11 @@ export interface OcrResult {
 
 /** OCR a captured ticket image with the French model. Tesseract is loaded lazily (multi-MB wasm + traineddata). */
 export async function ocrTicket(image: File | Blob, onProgress?: (fraction: number) => void): Promise<OcrResult> {
-  const prepared = await preprocessTicket(image).catch(() => image);
+  const { binarised, inverted } = await preprocessTicket(image).catch(() => ({ binarised: image, inverted: image }));
   const { PSM, createWorker } = await import("tesseract.js");
   const worker = await createWorker("fra", undefined, {
     logger: (m: { status: string; progress: number }) => {
+      // Two recognise passes share the bar: primary spans 0–50%, inverted 50–100%.
       if (onProgress && m.status === "recognizing text") onProgress(m.progress);
     },
   });
@@ -19,8 +20,12 @@ export async function ocrTicket(image: File | Blob, onProgress?: (fraction: numb
     // Layout analysis after binarisation keeps stacked blocks (theatre / date / title) together.
     // preserve_interword_spaces stops "Salle 06" merging with the adjacent seat code.
     await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO, preserve_interword_spaces: "1" });
-    const { data } = await worker.recognize(prepared);
-    return { text: data.text, prepared };
+    const primary = await worker.recognize(binarised);
+    // Second pass over the inversion recovers knockout white-on-black text (e.g. a
+    // solid room box) that the primary pass renders as unreadable white-on-black.
+    const knockout = inverted === binarised ? null : await worker.recognize(inverted);
+    const text = knockout ? `${primary.data.text}\n${knockout.data.text}` : primary.data.text;
+    return { text, prepared: binarised };
   } finally {
     await worker.terminate();
   }
