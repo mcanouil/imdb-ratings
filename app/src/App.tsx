@@ -96,12 +96,15 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
 
   if (status === "authed" && token) return children(token, logout);
 
+  // Local dev (vite dev server) skips the login wall so the UI is reachable without
+  // GitHub. The commit flow stays gated on a real token (see ReviewStep), so an empty
+  // token here can browse every step but cannot write.
+  if (import.meta.env.DEV && status === "locked") return children("", logout);
+
   return (
-    <main className="app">
-      <header>
-        <h1>🎟️ Ticket → theatres.csv</h1>
-      </header>
+    <main className="app app--center">
       <section className="step gate">
+        <h1>🎟️ Ticket → theatres.csv</h1>
         {status === "checking" ? (
           <p>Checking session…</p>
         ) : (
@@ -164,7 +167,7 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
 
   return (
     <main className="app">
-      <header>
+      <header className="app-header">
         <div className="topbar">
           <h1>🎟️ Ticket → theatres.csv</h1>
           <button type="button" className="link" onClick={onLogout}>
@@ -174,13 +177,14 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
         <Stepper step={step} />
       </header>
 
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
+      <div className="app-main">
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
 
-      {step === "capture" && (
+        {step === "capture" && (
         <CameraCapture
           onError={setError}
           onResult={(text, url) => {
@@ -238,9 +242,10 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
         />
       )}
 
-      {step === "done" && committed && (
-        <DoneStep row={committed.row} result={committed.result} imdbId={imdbId} onReset={reset} />
-      )}
+        {step === "done" && committed && (
+          <DoneStep row={committed.row} result={committed.result} imdbId={imdbId} onReset={reset} />
+        )}
+      </div>
     </main>
   );
 }
@@ -412,6 +417,7 @@ function ReviewStep({
   onBack: () => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const authed = Boolean(token);
 
   const doCommit = async () => {
     setBusy(true);
@@ -430,11 +436,12 @@ function ReviewStep({
     <section className="step">
       <p>New row to commit:</p>
       <pre className="row">{row}</pre>
+      {!authed && <p className="error">Sign in is required to commit. Auth is bypassed for local dev only.</p>}
       <div className="actions">
         <button type="button" className="secondary" onClick={onBack}>
           ← Back
         </button>
-        <button type="button" onClick={doCommit} disabled={busy}>
+        <button type="button" onClick={doCommit} disabled={busy || !authed}>
           {busy ? "Committing…" : "✅ Commit to theatres.csv"}
         </button>
       </div>
@@ -455,22 +462,25 @@ function DoneStep({
 }) {
   return (
     <section className="step done">
-      <p>✅ Committed. The render workflow will refresh the figures shortly.</p>
+      <span className="success-badge" aria-hidden="true">
+        ✓
+      </span>
+      <p>Committed. The render workflow will refresh the figures shortly.</p>
       <pre className="row">{row}</pre>
       <p>{result.verified ? "🔒 Signed commit (Verified)." : "⚠️ Commit not verified."}</p>
-      <div className="actions">
-        <a className="button" href={`https://www.imdb.com/title/${imdbId}/`} target="_blank" rel="noreferrer">
-          ★ Rate on IMDb
-        </a>
-        <button type="button" onClick={onReset}>
-          Scan another
-        </button>
-      </div>
       <p>
         <a href={result.html_url ?? `${REPO_URL}/commits/main`} target="_blank" rel="noreferrer">
           View commit
         </a>
       </p>
+      <div className="actions">
+        <button type="button" className="secondary" onClick={onReset}>
+          Scan another
+        </button>
+        <a className="button gold" href={`https://www.imdb.com/title/${imdbId}/`} target="_blank" rel="noreferrer">
+          ★ Rate on IMDb
+        </a>
+      </div>
     </section>
   );
 }

@@ -4,8 +4,8 @@
   "start_url": "/imdb-ratings/",
   "scope": "/imdb-ratings/",
   "display": "standalone",
-  "background_color": "#0b0e11",
-  "theme_color": "#1a1a1a",
+  "background_color": "#0a0c10",
+  "theme_color": "#0a0c10",
   "icons": [
     {
       "src": "/imdb-ratings/icon.svg",

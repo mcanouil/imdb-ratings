@@ -86,8 +86,7 @@ export function CameraCapture({ onResult, onError }: Props) {
     }
   };
 
-  if (mode === "fallback")
-    return <PhotoCapture onResult={onResult} onError={onError} onUseCamera={() => void start()} />;
+  if (mode === "fallback") return <PhotoCapture onResult={onResult} onError={onError} />;
 
   if (mode === "starting") {
     return (
@@ -126,7 +125,7 @@ export function CameraCapture({ onResult, onError }: Props) {
 }
 
 /** Fallback when getUserMedia is unavailable/denied: the OS photo picker. */
-function PhotoCapture({ onResult, onError, onUseCamera }: Props & { onUseCamera?: () => void }) {
+function PhotoCapture({ onResult, onError }: Props) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -147,7 +146,10 @@ function PhotoCapture({ onResult, onError, onUseCamera }: Props & { onUseCamera?
     <section className="step">
       <p>Pick a photo of the ticket. Fields are extracted then you confirm.</p>
       <label className="capture-button">
-        {busy ? `Reading… ${Math.round(progress * 100)}%` : "🖼️ Choose a photo"}
+        <span className="capture-icon" aria-hidden="true">
+          🖼️
+        </span>
+        <span>{busy ? `Reading… ${Math.round(progress * 100)}%` : "Choose a photo"}</span>
         <input
           type="file"
           accept="image/*"
@@ -159,11 +161,6 @@ function PhotoCapture({ onResult, onError, onUseCamera }: Props & { onUseCamera?
           }}
         />
       </label>
-      {onUseCamera && (
-        <button type="button" className="link" onClick={onUseCamera} disabled={busy}>
-          Use camera instead
-        </button>
-      )}
     </section>
   );
 }
