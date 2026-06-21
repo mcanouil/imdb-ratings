@@ -25,6 +25,30 @@ describe("parseTicket", () => {
   });
 });
 
+const BACKROOMS = `CINE CITE LILLE        Salle 06 F11
+dim. 21 juin 2026        10:45
+BACKROOMS VOstF
+Abonnement UGC Illimité          AVE -12
+UI ******244103-
+21/06/2026 10:55:18.752
+3-017-335226972-6-0150295
+LILLE-2-42(42)
+Op.4200000049198653
+UGC ILLIMITE
+Ni repris, ni echange`;
+
+describe("parseTicket", () => {
+  it("extracts every field from the Backrooms ticket with an inverted room box", () => {
+    expect(parseTicket(BACKROOMS)).toEqual({
+      theatre: "LILLE",
+      room: "6",
+      date: "2026-06-21",
+      time: "10:45",
+      title: "BACKROOMS",
+    });
+  });
+});
+
 describe("parseTheatre", () => {
   it("prefers the venue code over the city name", () => {
     expect(parseTheatre("LE MAJESTIC LILLE")).toBe("MAJESTIC");
@@ -43,6 +67,15 @@ describe("parseRoom", () => {
   it("strips the leading zero", () => {
     expect(parseRoom("Salle 01")).toBe("1");
     expect(parseRoom("SALLE 13")).toBe("13");
+  });
+
+  it("ignores an adjacent seat code", () => {
+    expect(parseRoom("Salle 06 F11")).toBe("6");
+    expect(parseRoom("Salle 06F11")).toBe("6");
+  });
+
+  it("reads O as a misread zero", () => {
+    expect(parseRoom("Salle O6")).toBe("6");
   });
 });
 

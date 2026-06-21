@@ -2,7 +2,10 @@
 // Otsu threshold removes the watermark and boosts contrast, which markedly
 // improves Tesseract accuracy versus feeding the raw photo.
 
-const TARGET_MAX_DIM = 1800;
+// Downscale large photos less aggressively (preserves small glyphs like
+// "Salle 06") and upscale tiny captures toward Tesseract's preferred cap-height.
+const TARGET_MAX_DIM = 2400;
+const TARGET_MIN_DIM = 1600;
 
 function otsuThreshold(histogram: number[], total: number): number {
   let sum = 0;
@@ -31,7 +34,10 @@ function otsuThreshold(histogram: number[], total: number): number {
 /** Grayscale + Otsu-threshold the captured ticket; returns a PNG blob for OCR. */
 export async function preprocessTicket(image: Blob): Promise<Blob> {
   const bitmap = await createImageBitmap(image);
-  const scale = Math.min(1, TARGET_MAX_DIM / Math.max(bitmap.width, bitmap.height)) || 1;
+  const maxDim = Math.max(bitmap.width, bitmap.height);
+  let scale = 1;
+  if (maxDim > TARGET_MAX_DIM) scale = TARGET_MAX_DIM / maxDim;
+  else if (maxDim > 0 && maxDim < TARGET_MIN_DIM) scale = TARGET_MIN_DIM / maxDim;
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
 
@@ -40,6 +46,7 @@ export async function preprocessTicket(image: Blob): Promise<Blob> {
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) return image;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
 

@@ -17,7 +17,8 @@ export async function ocrTicket(image: File | Blob, onProgress?: (fraction: numb
   });
   try {
     // Layout analysis after binarisation keeps stacked blocks (theatre / date / title) together.
-    await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO });
+    // preserve_interword_spaces stops "Salle 06" merging with the adjacent seat code.
+    await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO, preserve_interword_spaces: "1" });
     const { data } = await worker.recognize(prepared);
     return { text: data.text, prepared };
   } finally {

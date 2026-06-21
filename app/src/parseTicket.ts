@@ -58,8 +58,14 @@ export function parseTheatre(text: string): string {
 }
 
 export function parseRoom(text: string): string {
-  const match = text.match(/salle\s*0*(\d+)/i);
-  return match ? match[1] : "";
+  // "Salle" may be followed by OCR noise (punctuation, the inverted box edge)
+  // before the room number, which is printed as two digits. Tolerate `O` as a
+  // misread `0` and cap the capture at two chars so an adjacent seat code
+  // (e.g. "F11") cannot merge in.
+  const match = text.match(/salle[\s.:|-]*([0-9oO]{1,2})/i);
+  if (!match) return "";
+  const room = Number(match[1].replace(/[oO]/g, "0"));
+  return Number.isNaN(room) ? "" : String(room);
 }
 
 export function parseDate(text: string): string {
