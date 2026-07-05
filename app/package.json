@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "vendor:ocr": "node scripts/vendor-ocr.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

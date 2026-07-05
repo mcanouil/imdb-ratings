@@ -6,11 +6,21 @@ export interface OcrResult {
   prepared: Blob;
 }
 
+// Tesseract runtime is vendored under public/vendor (see scripts/vendor-ocr.mjs) so
+// it loads same-origin instead of from third-party CDNs. Paths honour Vite's base so
+// they resolve under /imdb-ratings/ on GitHub Pages. The SIMD-LSTM core is pinned
+// explicitly: it matches the default LSTM_ONLY engine and runs on every browser with
+// WebAssembly SIMD (baseline in current Chrome/Firefox/Safari).
+const OCR_BASE = `${import.meta.env.BASE_URL}vendor`;
+
 /** OCR a captured ticket image with the French model. Tesseract is loaded lazily (multi-MB wasm + traineddata). */
 export async function ocrTicket(image: File | Blob, onProgress?: (fraction: number) => void): Promise<OcrResult> {
   const { binarised, inverted } = await preprocessTicket(image).catch(() => ({ binarised: image, inverted: image }));
   const { PSM, createWorker } = await import("tesseract.js");
   const worker = await createWorker("fra", undefined, {
+    workerPath: `${OCR_BASE}/tesseract/worker.min.js`,
+    corePath: `${OCR_BASE}/tesseract/tesseract-core-simd-lstm.wasm.js`,
+    langPath: `${OCR_BASE}/tessdata`,
     logger: (m: { status: string; progress: number }) => {
       // Two recognise passes share the bar: primary spans 0–50%, inverted 50–100%.
       if (onProgress && m.status === "recognizing text") onProgress(m.progress);

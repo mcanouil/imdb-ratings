@@ -7,11 +7,21 @@ export interface CommitResult {
   verified: boolean;
 }
 
+/** Keep a value on one line and comma-free so it cannot break out of its CSV field. */
+function csvField(value: string): string {
+  return value.replace(/[\r\n,]+/g, " ").trim();
+}
+
 /** Build a CSV row "YYYY-MM-DD HH:MM,room,THEATRE,ttID" with single-line, comma-free fields. */
 export function buildRow(fields: TicketFields, imdbId: string): string {
-  const theatre = fields.theatre.replace(/[\r\n,]+/g, " ").trim().toUpperCase();
+  const date = csvField(fields.date);
+  const time = csvField(fields.time);
   const room = fields.room.replace(/\D/g, "");
-  return `${fields.date} ${fields.time},${room},${theatre},${imdbId}`;
+  const theatre = csvField(fields.theatre).toUpperCase();
+  // IMDb ids are "tt" followed by digits; keep only that leading shape so a crafted
+  // suggestion payload cannot smuggle a comma or newline (extra columns / rows).
+  const id = imdbId.match(/^tt\d+/)?.[0] ?? "";
+  return `${date} ${time},${room},${theatre},${id}`;
 }
 
 /**
