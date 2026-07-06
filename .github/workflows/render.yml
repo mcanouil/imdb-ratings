@@ -23,14 +23,16 @@ jobs:
       BRANCH: ci/render-figures
       COMMIT: "ci: automatic figure rendering"
     steps:
-      - uses: actions/checkout@v7
-
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v3
         id: app-token
         with:
           client-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_KEY }}
+
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Get GitHub App User ID
         id: get-user-id
