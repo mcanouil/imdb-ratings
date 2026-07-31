@@ -715,47 +715,74 @@ save_plot_both_modes(
   height = height_count_plot
 )
 
-httr2::request("https://caching.graphql.imdb.com/") |>
-  httr2::req_headers(
-    "User-Agent" = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-    "Content-Type" = "application/json"
-  ) |>
-  httr2::req_body_json(list(
-    query = "{ userRatings(userId: \"ur56341222\", first: 1) { total } }"
-  )) |>
-  httr2::req_perform() |>
-  httr2::resp_body_json() |>
-  (function(x) {
-    n <- format(x[["data"]][["userRatings"]][["total"]], big.mark = ",")
-    pal <- mc_palette("light")
-    sprintf(
-      paste(
-        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="37" height="20" role="img" aria-label="%s">',
-        '<title>%s</title>',
-        '<linearGradient id="s" x2="0" y2="100%%">',
-        '<stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/>',
-        '</linearGradient>',
-        '<clipPath id="r"><rect width="37" height="20" rx="3" fill="#fff"/></clipPath>',
-        '<g clip-path="url(#r)">',
-        '<rect width="0" height="20" fill="%s"/>',
-        '<rect x="0" width="37" height="20" fill="%s"/>',
-        '<rect width="37" height="20" fill="url(#s)"/>',
-        '</g>',
-        '<g fill="%s" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">',
-        '<text aria-hidden="true" x="185" y="150" fill="%s" fill-opacity=".3" transform="scale(.1)" textLength="270">%s</text>',
-        '<text x="185" y="140" transform="scale(.1)" fill="%s" textLength="270">%s</text>',
-        '</g>',
-        '</svg>'
+# The IMDb GraphQL edge rejects requests without an imdb.com "Referer" or an
+# "x-imdb-client-name" header with HTTP 403; both are sent so either rule satisfies it.
+imdb_ratings_total <- function(user_id) {
+  httr2::request("https://caching.graphql.imdb.com/") |>
+    httr2::req_headers(
+      "User-Agent" = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+      "Content-Type" = "application/json",
+      "Origin" = "https://www.imdb.com",
+      "Referer" = "https://www.imdb.com/",
+      "x-imdb-client-name" = "imdb-web-next"
+    ) |>
+    httr2::req_body_json(list(
+      query = sprintf(
+        "{ userRatings(userId: \"%s\", first: 1) { total } }",
+        user_id
+      )
+    )) |>
+    httr2::req_retry(max_tries = 3) |>
+    httr2::req_perform() |>
+    httr2::resp_body_json() |>
+    (function(x) x[["data"]][["userRatings"]][["total"]])()
+}
+
+imdb_total <- tryCatch(
+  imdb_ratings_total("ur56341222"),
+  error = function(e) {
+    warning(
+      sprintf(
+        "IMDb ratings count unavailable (%s); keeping existing media/imdb.svg.",
+        conditionMessage(e)
       ),
-      n,
-      n,
-      pal$gold,
-      pal$gold,
-      pal$ink,
-      pal$ink,
-      n,
-      pal$ink,
-      n
+      call. = FALSE
     )
-  })() |>
-  writeLines(con = "media/imdb.svg")
+    NULL
+  }
+)
+
+if (!is.null(imdb_total)) {
+  n <- format(imdb_total, big.mark = ",")
+  pal <- mc_palette("light")
+  sprintf(
+    paste(
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="37" height="20" role="img" aria-label="%s">',
+      '<title>%s</title>',
+      '<linearGradient id="s" x2="0" y2="100%%">',
+      '<stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/>',
+      '</linearGradient>',
+      '<clipPath id="r"><rect width="37" height="20" rx="3" fill="#fff"/></clipPath>',
+      '<g clip-path="url(#r)">',
+      '<rect width="0" height="20" fill="%s"/>',
+      '<rect x="0" width="37" height="20" fill="%s"/>',
+      '<rect width="37" height="20" fill="url(#s)"/>',
+      '</g>',
+      '<g fill="%s" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">',
+      '<text aria-hidden="true" x="185" y="150" fill="%s" fill-opacity=".3" transform="scale(.1)" textLength="270">%s</text>',
+      '<text x="185" y="140" transform="scale(.1)" fill="%s" textLength="270">%s</text>',
+      '</g>',
+      '</svg>'
+    ),
+    n,
+    n,
+    pal[["gold"]],
+    pal[["gold"]],
+    pal[["ink"]],
+    pal[["ink"]],
+    n,
+    pal[["ink"]],
+    n
+  ) |>
+    writeLines(con = "media/imdb.svg")
+}
