@@ -4,7 +4,7 @@ import { CameraCapture } from "./CameraCapture";
 import { parseTicket, type TicketFields } from "./parseTicket";
 import { searchImdb, type ImdbSuggestion } from "./imdb";
 import { buildRow, commit, type CommitResult } from "./github";
-import { clearToken, getValidToken, isOwner, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
+import { checkOwner, endSession, getValidToken, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
 import { usePullToRefresh } from "./usePullToRefresh";
 import { errorMessage } from "./util";
 
@@ -45,15 +45,28 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
 
   // Verify a token belongs to the owner, then either unlock or reject (used by both paths).
   const acceptToken = async (t: string): Promise<void> => {
-    const ok = await isOwner(t).catch(() => false);
-    if (ok) {
+    const result = await checkOwner(t);
+    if (result === "owner") {
       setToken(t);
       setStatus("authed");
-    } else {
-      clearToken();
+      return;
+    }
+    if (result === "denied") {
+      void endSession();
       setStatus("locked");
       setError("This account is not authorised.");
+      return;
     }
+    if (result === "expired") {
+      void endSession();
+      setStatus("locked");
+      setError("Your session has ended. Sign in again.");
+      return;
+    }
+    // Unreachable: keep the stored token so the next launch can use it. A
+    // network failure must never end a valid session.
+    setStatus("locked");
+    setError("GitHub could not be reached. Check your connection and try again.");
   };
 
   // On load: restore (and refresh if needed) the persisted session, then verify ownership.
@@ -88,10 +101,16 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
   };
 
   const logout = () => {
-    clearToken();
     setToken(null);
     setStatus("locked");
     setError("");
+    void endSession().then((revoked) => {
+      if (!revoked) {
+        setError(
+          "Signed out on this device. GitHub could not be reached, so the token was not revoked. Revoke it from your GitHub settings if this device is not yours.",
+        );
+      }
+    });
   };
 
   if (status === "authed" && token) return children(token, logout);

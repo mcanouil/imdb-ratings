@@ -17,7 +17,7 @@ npm run build      # type-check + production build to dist/
 - **OCR**: Tesseract.js (`fra`) reads the ticket photo client-side (`src/ocr.ts`).
 - **Parse**: `src/parseTicket.ts` extracts theatre / room / date / time / title; every field is editable before submit.
 - **IMDb**: `src/imdb.ts` queries the legacy JSONP suggestion endpoint (CORS-immune via `<script>`), capped at two words so the callback stays valid.
-- **Auth**: GitHub App device flow via the Netlify gateway at `api.canouil.dev` (`src/auth.ts`); token kept in `sessionStorage`.
+- **Auth**: GitHub App device flow via the Netlify gateway at `api.canouil.dev` (`src/auth.ts`); token kept in `localStorage`.
 - **Commit**: `src/github.ts` inserts the row in descending `date_time` order and PUTs it to `main`, which triggers the existing `render.yml`.
 
 ## Configuration
