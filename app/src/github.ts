@@ -25,6 +25,18 @@ export function buildRow(fields: TicketFields, imdbId: string): string {
 }
 
 /**
+ * Raised when the gateway refuses the token.
+ * The gateway ends a session seven days after it first sees its token, so this
+ * is a routine outcome rather than a fault, and the app returns to the gate.
+ */
+export class SessionExpiredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SessionExpiredError";
+  }
+}
+
+/**
  * Commit the row via the gateway, which mints a repo-scoped GitHub App
  * installation token so the commit is GitHub-signed (Verified). The user's
  * device-flow token is sent only as an identity gate.
@@ -43,6 +55,7 @@ export async function commit(userToken: string, row: string): Promise<CommitResu
     } catch {
       // non-JSON error body; keep the status code
     }
+    if (res.status === 401) throw new SessionExpiredError(detail);
     throw new Error(`Commit failed: ${detail}`);
   }
   return (await res.json()) as CommitResult;

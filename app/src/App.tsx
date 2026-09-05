@@ -3,7 +3,7 @@ import { OWNER_LOGIN, REPO_URL, THEATRE_CODES } from "./config";
 import { CameraCapture } from "./CameraCapture";
 import { parseTicket, type TicketFields } from "./parseTicket";
 import { searchImdb, type ImdbSuggestion } from "./imdb";
-import { buildRow, commit, type CommitResult } from "./github";
+import { buildRow, commit, SessionExpiredError, type CommitResult } from "./github";
 import { checkOwner, endSession, getValidToken, pollForToken, startDeviceFlow, type DeviceCode } from "./auth";
 import { usePullToRefresh } from "./usePullToRefresh";
 import { errorMessage } from "./util";
@@ -63,8 +63,8 @@ function AuthGate({ children }: { children: (token: string, logout: () => void) 
       setError("Your session has ended. Sign in again.");
       return;
     }
-    // Unreachable: keep the stored token so the next launch can use it. A
-    // network failure must never end a valid session.
+    // Unreachable: keep the stored token so the next launch can use it.
+    // A network failure must never end a valid session.
     setStatus("locked");
     setError("GitHub could not be reached. Check your connection and try again.");
   };
@@ -260,6 +260,7 @@ function Scanner({ token, onLogout }: { token: string; onLogout: () => void }) {
           row={buildRow(fields, imdbId)}
           onBack={() => setStep("pick")}
           onError={setError}
+          onSessionExpired={onLogout}
           onCommitted={(row, result) => {
             setCommitted({ row, result });
             setStep("done");
@@ -434,12 +435,14 @@ function ReviewStep({
   onCommitted,
   onError,
   onBack,
+  onSessionExpired,
 }: {
   token: string;
   row: string;
   onCommitted: (row: string, result: CommitResult) => void;
   onError: (m: string) => void;
   onBack: () => void;
+  onSessionExpired: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const authed = Boolean(token);
@@ -451,6 +454,12 @@ function ReviewStep({
       const result = await commit(token, row);
       onCommitted(row, result);
     } catch (e) {
+      if (e instanceof SessionExpiredError) {
+        // The server ended the session. Returning to the gate is the only
+        // useful action, and the sign-out path already does the rest.
+        onSessionExpired();
+        return;
+      }
       onError(errorMessage(e));
     } finally {
       setBusy(false);

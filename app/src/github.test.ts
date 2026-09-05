@@ -1,6 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { buildRow } from "./github";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { buildRow, commit, SessionExpiredError } from "./github";
 import type { TicketFields } from "./parseTicket";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 const FIELDS: TicketFields = {
   theatre: "MAJESTIC",
@@ -42,5 +46,33 @@ describe("buildRow", () => {
     const row = buildRow(dirty, "tt42575634");
     expect(row.split("\n")).toHaveLength(1);
     expect(row.split(",")).toHaveLength(4);
+  });
+});
+
+describe("commit session handling", () => {
+  it("raises SessionExpiredError when the gateway refuses the token", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({ error: "Session expired. Sign in again." }),
+      } as Response),
+    );
+
+    await expect(commit("tok", "a,b,c")).rejects.toBeInstanceOf(SessionExpiredError);
+  });
+
+  it("raises an ordinary error for other failures", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: "Server error." }),
+      } as Response),
+    );
+
+    await expect(commit("tok", "a,b,c")).rejects.not.toBeInstanceOf(SessionExpiredError);
   });
 });
