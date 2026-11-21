@@ -1,16 +1,18 @@
-library(here)
-library(data.table)
-library(ggplot2)
-library(marquee)
-library(scales)
-library(lubridate)
-library(systemfonts)
-# library(ragg)
-library(svglite)
-library(rvest)
-library(httr2)
+suppressPackageStartupMessages({
+  library(here, quietly = TRUE, warn.conflicts = FALSE)
+  library(data.table, quietly = TRUE, warn.conflicts = FALSE)
+  library(ggplot2, quietly = TRUE, warn.conflicts = FALSE)
+  library(marquee, quietly = TRUE, warn.conflicts = FALSE)
+  library(scales, quietly = TRUE, warn.conflicts = FALSE)
+  library(lubridate, quietly = TRUE, warn.conflicts = FALSE)
+  library(systemfonts, quietly = TRUE, warn.conflicts = FALSE)
+  # library(ragg, quietly = TRUE, warn.conflicts = FALSE)
+  library(svglite, quietly = TRUE, warn.conflicts = FALSE)
+  library(rvest, quietly = TRUE, warn.conflicts = FALSE)
+  library(httr2, quietly = TRUE, warn.conflicts = FALSE)
+})
 
-Sys.setlocale("LC_TIME", "en_US.UTF-8")
+invisible(Sys.setlocale("LC_TIME", "en_US.UTF-8"))
 
 fig_caption <- NULL # "&copy; Micka&euml;l CANOUIL"
 
@@ -376,7 +378,9 @@ create_streak_geoms <- function(mode = c("dark", "light")) {
   )
 }
 
-set_theme(theme_mcanouil(base_size = 11))
+suppressMessages({
+  set_theme(theme_mcanouil(base_size = 11))
+})
 
 local({
   pal <- mc_palette("dark")
@@ -524,7 +528,9 @@ create_count_geoms <- function(mode = c("dark", "light")) {
 save_plot_both_modes <- function(plot_fn, base_filename, width, height) {
   for (mode in c("dark", "light")) {
     pal <- mc_palette(mode)
-    ggplot2::set_theme(theme_mcanouil(base_size = 11, mode = mode))
+    suppressMessages({
+      ggplot2::set_theme(theme_mcanouil(base_size = 11, mode = mode))
+    })
     ggplot2::update_theme(
       plot.title.position = "plot",
       plot.caption.position = "plot",

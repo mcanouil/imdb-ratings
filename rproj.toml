@@ -1,0 +1,18 @@
+[project]
+name = "imdb-ratings"
+version = "0.1.0"
+type = "project"
+
+[dependencies]
+R = ">= 4.5"
+here = "*"
+"data.table" = "*"
+ggplot2 = "*"
+marquee = "*"
+scales = "*"
+lubridate = "*"
+systemfonts = "*"
+svglite = "*"
+rvest = "*"
+httr2 = "*"
+S7 = "^0.2.2"
