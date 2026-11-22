@@ -15,6 +15,10 @@ name: Render
 permissions:
   contents: read
 
+concurrency:
+  group: render
+  cancel-in-progress: true
+
 jobs:
   render:
     runs-on: ubuntu-latest
